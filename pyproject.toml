@@ -4,11 +4,32 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
+packages = [
+{ include = "src" },
+{ include = "tests" },
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.12"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+ruff = "^0.3.4"
+pydantic-settings = "^2.2.1"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.flake8]
+max-line-length = 100
+
+[tool.isort]
+profile = "black"
