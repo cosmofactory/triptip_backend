@@ -4,7 +4,7 @@ Backend part of travel portal TripTip
 
   
 
-**To run this project do the following:**
+**To run this project in local machine do the following:**
 
   
 
@@ -30,6 +30,20 @@ cp .env_sample .env
 
 ```bash
 uvicorn src.main:app --port 8000 --reload
+```
+<br/><br/>
+**To run this project in docker container do the following:**
+
+1. Build docker image from Docker file :
+
+```bash
+docker build -t triptip:0.1 .
+```
+
+2. Run docker container from image :
+
+```bash
+docker run -d --name triptip -p 8000:80 triptip:0.1 
 ```
 
 [API Documentation](http://127.0.0.1:8000/docs)
