@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  service:
+    build: .
+    command: poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_URI=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16.2-alpine3.18
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    expose:
+      - ${DB_PORT}
+
+volumes:
+  postgres_data:

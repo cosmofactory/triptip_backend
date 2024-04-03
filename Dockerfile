@@ -44,5 +44,6 @@ RUN set -ex; \
 
 COPY . .
 
-CMD ["poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]
+CMD ["poetry", "run", "gunicorn", "src.main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", \
+"--bind", "0.0.0.0:8000"]
 

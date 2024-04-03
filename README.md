@@ -34,16 +34,17 @@ uvicorn src.main:app --port 8000 --reload
 <br/><br/>
 **To run this project in docker container do the following:**
 
-1. Build docker image from Docker file :
+1. Build docker images from docker-compose.yaml :
 
 ```bash
-docker build -t triptip:0.1 .
+docker compose build 
 ```
 
-2. Run docker container from image :
+2. Run docker containers:
 
 ```bash
-docker run -d --name triptip -p 8000:80 triptip:0.1 
+docker compose up --abort-on-container-exit && docker compose rm -fsv
+
 ```
 
 [API Documentation](http://127.0.0.1:8000/docs)
