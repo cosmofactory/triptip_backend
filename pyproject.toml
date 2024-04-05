@@ -20,6 +20,7 @@ sqlalchemy = "^2.0.29"
 asyncpg = "^0.29.0"
 alembic = "^1.13.1"
 gunicorn = "^21.2.0"
+pre-commit = "^3.7.0"
 
 
 [build-system]
