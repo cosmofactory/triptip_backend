@@ -1,5 +1,4 @@
 run_trip_tip_backend_locally:
-	cp .env_sample .env
 	uvicorn src.main:app --port 8000 --reload
 
 run_trip_tip_backend_in_container:

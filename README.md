@@ -11,7 +11,12 @@ Backend part of travel portal TripTip
 make install_dependents
 ```
 
-2. Run project:
+2. Cope environment sample
+```bash
+cp .env_sample .env
+```
+
+3. Run project:
 
 Locally:
 
