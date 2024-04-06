@@ -2,50 +2,34 @@
 
 Backend part of travel portal TripTip
 
-  
 
-**To run this project in local machine do the following:**
-
-  
+**To run this project do the following:**
 
 1. Install poetry dependencies:
 
 ```bash
-poetry install
+make install_dependents
 ```
 
-2. Activate poetry environment:
-
-```bash
-poetry shell
-```
-
-3. Copy env file and fill with necessary data:
-
+2. Cope environment sample
 ```bash
 cp .env_sample .env
 ```
 
-4. Run server with following command:
+3. Run project:
+
+Locally:
 
 ```bash
-uvicorn src.main:app --port 8000 --reload
+make run_trip_tip_backend_locally
 ```
-<br/><br/>
-**To run this project in docker container do the following:**
 
-1. Build docker images from docker-compose.yaml :
+In container:
 
 ```bash
-docker compose build 
+make run_trip_tip_backend_in_container
 ```
 
-2. Run docker containers:
-
-```bash
-docker compose up --abort-on-container-exit && docker compose rm -fsv
-
-```
 
 [API Documentation](http://127.0.0.1:8000/docs)
 
