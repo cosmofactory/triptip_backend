@@ -15,3 +15,7 @@ install_dependents:
 	poetry install
 	poetry shell
 	poetry run pre-commit install
+
+# Run pytest with correct environment, otherwise tests will fail:
+test:
+	MODE=TEST poetry run pytest
