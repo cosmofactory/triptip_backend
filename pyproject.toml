@@ -35,6 +35,12 @@ line-length = 100
 
 [tool.ruff.lint]
 extend-select = ["I"]
+select = [
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+]
 
 [tool.flake8]
 max-line-length = 100
