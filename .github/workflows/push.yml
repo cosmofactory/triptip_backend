@@ -41,9 +41,9 @@ jobs:
         - name: Install the project dependencies
           run: poetry install
 
-        - run: mkdir coverage
         - name: Run pytest
-          run: MODE=TEST poetry run pytest --cov=src
+          run: |
+            MODE=TEST poetry run pytest --cov=src --cov-report=html:htmlcov  
           env:
             DB_HOST: ${{ secrets.DB_HOST }}
             DB_PORT: ${{ secrets.DB_PORT }}
@@ -51,47 +51,12 @@ jobs:
             DB_PASS: ${{ secrets.DB_PASS }}
             DB_NAME: ${{ secrets.DB_NAME }}
             MODE: TEST
-            COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
-            CONTEXT: ${{ runner.os }}-py3.12.2
 
         - name: Run ruff
           run: poetry run ruff check .
-        - name: Store coverage files
-          uses: actions/upload-artifact@v3
-          with:
-            name: coverage
-            path: coverage
-  
-  coverage:
-    needs: test_and_lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12.2'
-      - name: Get coverage files
-        uses: actions/download-artifact@v3
-        with:
-          name: coverage
-          path: coverage
-      - run: pip install coverage[toml]
-      - run: ls -la coverage
-      - run: coverage combine coverage
-      - run: coverage report
-      - run: coverage html --show-contexts --title "Coverage for ${{ github.sha }}"
-      - name: Store coverage HTML
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-html
-          path: htmlcov
-  
+
   smokeshow:
-    needs: coverage
+    needs: test_and_lint
     runs-on: ubuntu-latest
 
     steps:
@@ -104,7 +69,8 @@ jobs:
           python-version: '3.12.2'
 
       - run: pip install smokeshow
-      - run: smokeshow upload coverage-html
+      - name: Upload coverage to Smokeshow
+        run: smokeshow upload htmlcom/
         env:
           SMOKESHOW_GITHUB_STATUS_DESCRIPTION: Coverage {coverage-percentage}
           SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 100
