@@ -52,4 +52,4 @@ jobs:
             MODE: TEST
 
         - name: Run ruff
-          run: poetry run ruff check . --format github
+          run: poetry run ruff .
