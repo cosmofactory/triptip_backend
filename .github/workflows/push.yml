@@ -39,6 +39,8 @@ jobs:
 
         - name: Run pytest
           run: MODE=TEST poetry run pytest
+          env:
+            MODE: TEST
 
         - name: Run ruff
           run: poetry run ruff .

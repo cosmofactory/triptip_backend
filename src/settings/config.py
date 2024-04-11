@@ -16,11 +16,11 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
 
-    TEST_DB_HOST: str = "localhost"
-    TEST_DB_PORT: int = 5432
-    TEST_DB_USER: str = "postgres"
-    TEST_DB_PASS: str = "postgres"
-    TEST_DB_NAME: str = "test_triptip"
+    TEST_DB_HOST: str
+    TEST_DB_PORT: int
+    TEST_DB_USER: str
+    TEST_DB_PASS: str
+    TEST_DB_NAME: str
 
     @property
     def DATABASE_URL(self) -> str:
