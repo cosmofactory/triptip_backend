@@ -1,4 +1,4 @@
-name: Code Style and pytest
+name: CI
 run-name: Push to ${{ github.ref_name }} by @${{ github.actor }}
 
 on:
