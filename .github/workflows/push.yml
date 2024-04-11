@@ -41,6 +41,7 @@ jobs:
         - name: Install the project dependencies
           run: poetry install
 
+        - run: mkdir coverage
         - name: Run pytest
           run: MODE=TEST poetry run pytest
           env:
@@ -50,9 +51,16 @@ jobs:
             DB_PASS: ${{ secrets.DB_PASS }}
             DB_NAME: ${{ secrets.DB_NAME }}
             MODE: TEST
+            COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
+            CONTEXT: ${{ runner.os }}-py3.12.2
 
         - name: Run ruff
           run: poetry run ruff .
+        - name: Store coverage files
+          uses: actions/upload-artifact@v3
+          with:
+            name: coverage
+            path: coverage
   
   coverage:
     needs: test_and_lint
