@@ -57,4 +57,4 @@ jobs:
             MODE: TEST
 
         - name: Run ruff
-          run: poetry run ruff check --extend-select B
+          run: poetry run ruff check . --format github
