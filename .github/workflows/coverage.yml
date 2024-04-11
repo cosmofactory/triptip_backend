@@ -2,7 +2,7 @@ name: Smokeshow
 
 on:
   workflow_run:
-    workflows: [push]
+    workflows: [Code Style and pytest]
     types: [completed]
 
 permissions:
