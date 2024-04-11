@@ -1,0 +1,63 @@
+name: Code Style and pytest
+run-name: Push to ${{ github.ref_name }} by @${{ github.actor }}
+
+on:
+  push
+
+env:
+    OS: ubuntu-22.04
+    PYTHON: 3.12.2
+    POETRY: 1.8.2
+
+jobs:
+
+  setup:
+    runs-on: ubuntu-22.04
+
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v4
+          with:
+            python-version: 3.12.2
+
+        - name: Install poetry
+          uses: abatilo/actions-poetry@v3.0.0
+
+        - name: Setup a local virtual environment
+          run: |
+            poetry config virtualenvs.create true --local
+            poetry config virtualenvs.in-project true --local
+
+        - uses: actions/cache@v3
+          name: Define a cache for the virtual environment based on the dependencies lock file
+          with:
+            path: ./.venv
+            key: venv-${{ hashFiles('poetry.lock') }}
+        - name: Install the project dependencies
+          run: poetry install
+        - name: Run linter-isort
+          run: poetry run isort .
+        - name: Run pytest
+          run: poetry run pytest
+
+  pytest:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+            path: ./.venv
+      - name: Run pytest
+        run: MODE=TEST poetry run pytest
+  
+  lint:
+    needs: setup
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+            path: ./.venv
+      - name: Run ruff
+        run: poetry run ruff .

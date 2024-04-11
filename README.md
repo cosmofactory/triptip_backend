@@ -49,6 +49,7 @@ make run_trip_tip_backend_in_container
 Python 3.12, FastAPI, Uvicorn, Postgres, Docker, pytest, nginx, Ruff
 
 **Creators:**
+
 [Ivan Murzinov](https://github.com/IMurzinov) *Frontend, Project Founder* 
 
 [Polina Bykova](https://github.com/pnbykova) *UX/UI*  
