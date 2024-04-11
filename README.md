@@ -1,4 +1,4 @@
-![CI](https://github.com/cosmosfactory/triptip_backend/actions/workflows/push.yml/badge.svg)
+![CI](https://github.com/cosmofactory/triptip_backend/actions/workflows/push.yml/badge.svg)
 
 # TripTip project - triptip_backend
 
