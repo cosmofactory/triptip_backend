@@ -3,6 +3,7 @@
 ![CI](https://github.com/cosmofactory/triptip_backend/actions/workflows/push.yml/badge.svg?branch=test_and_lint)
 ![Coverage](https://coverage-badge.samuelcolvin.workers.dev/cosmofactory/triptip_backend.svg)
 [![Coverage](https://coverage-badge.samuelcolvin.workers.dev/cosmofactory/triptip_backend.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/cosmofactory/triptip_backend)
+![Coverage](https://coverage-badge.samuelcolvin.workers.dev/cosmofactory/triptip_backend.svg)
 
 # TripTip project - triptip_backend
 
