@@ -43,7 +43,7 @@ jobs:
 
         - run: mkdir coverage
         - name: Run pytest
-          run: MODE=TEST poetry run pytest
+          run: MODE=TEST poetry run pytest --cov=your_package_name --cov-report html:coverage
           env:
             DB_HOST: ${{ secrets.DB_HOST }}
             DB_PORT: ${{ secrets.DB_PORT }}
@@ -55,7 +55,7 @@ jobs:
             CONTEXT: ${{ runner.os }}-py3.12.2
 
         - name: Run ruff
-          run: poetry run ruff .
+          run: poetry run ruff check .
         - name: Store coverage files
           uses: actions/upload-artifact@v3
           with:
