@@ -11,7 +11,7 @@ env:
 
 jobs:
 
-  setup:
+  test_and_lint:
     runs-on: ubuntu-22.04
 
     steps:
@@ -35,25 +35,7 @@ jobs:
             key: venv-${{ hashFiles('poetry.lock') }}
         - name: Install the project dependencies
           run: poetry install
-
-  pytest:
-    needs: setup
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v3
-        with:
-            path: ./.venv
-      - name: Run pytest
-        run: MODE=TEST poetry run pytest
-  
-  lint:
-    needs: setup
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v3
-        with:
-            path: ./.venv
-      - name: Run ruff
-        run: poetry run ruff .
+        - name: Run pytest
+          run: MODE=TEST poetry run pytest
+        - name: Run ruff
+          run: poetry run ruff .
