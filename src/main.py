@@ -12,9 +12,9 @@ async def read_root():
 
     async with async_session_maker() as session:
         try:
-            result = await session.execute(text("SELECT 'Database works, yay!'")) 
+            result = await session.execute(text("SELECT 'Database works, yay!'"))
         except Exception as e:
-            return {"Error": f"An error occurred during database query: {str(e)}"} 
+            return {"Error": f"An error occurred during database query: {str(e)}"}
     return {
         "Info": "This is our project TripTip."
         " Here you will find the most amazing trips and plan your next adventure!"
