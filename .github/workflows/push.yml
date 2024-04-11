@@ -70,7 +70,7 @@ jobs:
 
       - run: pip install smokeshow
       - name: Upload coverage to Smokeshow
-        run: smokeshow upload htmlcom/
+        run: smokeshow upload htmlcov/
         env:
           SMOKESHOW_GITHUB_STATUS_DESCRIPTION: Coverage {coverage-percentage}
           SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 100
