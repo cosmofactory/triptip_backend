@@ -43,7 +43,7 @@ jobs:
 
         - run: mkdir coverage
         - name: Run pytest
-          run: MODE=TEST poetry run pytest --cov=your_package_name --cov-report html:coverage
+          run: MODE=TEST poetry run pytest --cov=src
           env:
             DB_HOST: ${{ secrets.DB_HOST }}
             DB_PORT: ${{ secrets.DB_PORT }}
