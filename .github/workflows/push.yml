@@ -55,6 +55,12 @@ jobs:
         - name: Run ruff
           run: poetry run ruff check .
 
+        - name: Archive coverage report
+          uses: actions/upload-artifact@v3
+          with:
+            name: coverage-report
+            path: htmlcov/
+
   smokeshow:
     needs: test_and_lint
     runs-on: ubuntu-latest
@@ -69,6 +75,13 @@ jobs:
           python-version: '3.12.2'
 
       - run: pip install smokeshow
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-report
+          path: htmlcov/
+
       - name: Upload coverage to Smokeshow
         run: smokeshow upload htmlcov/
         env:
