@@ -1,7 +1,7 @@
 ![Python](https://img.shields.io/badge/python-3.12.2-blue.svg)
 ![CI](https://github.com/cosmofactory/triptip_backend/actions/workflows/push.yml/badge.svg)
 ![CI](https://github.com/cosmofactory/triptip_backend/actions/workflows/push.yml/badge.svg?branch=test_and_lint)
-![Coverage](https://codecov.io/gh/cosmofactory/triptip_backend/branch/main/graph/badge.svg)
+![Coverage](https://coverage-badge.samuelcolvin.workers.dev/cosmofactory/triptip.svg)
 
 # TripTip project - triptip_backend
 
