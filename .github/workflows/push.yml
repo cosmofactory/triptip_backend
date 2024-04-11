@@ -55,6 +55,7 @@ jobs:
           run: poetry run ruff .
   
   smokeshow:
+    needs: test_and_lint
     runs-on: ubuntu-latest
 
     steps:
