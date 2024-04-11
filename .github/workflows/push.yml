@@ -4,11 +4,6 @@ run-name: Push to ${{ github.ref_name }} by @${{ github.actor }}
 on:
   push
 
-env:
-    OS: ubuntu-22.04
-    PYTHON: 3.12.2
-    POETRY: 1.8.2
-
 jobs:
 
   test_and_lint:

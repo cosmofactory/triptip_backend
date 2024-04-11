@@ -34,11 +34,7 @@ build-backend = "poetry.core.masonry.api"
 line-length = 100
 
 [tool.ruff.lint]
-extend-select = ["I"]
-select = [
-    "B",
-    "I",
-]
+extend-select = ["I", "W", "B", "I",]
 
 [tool.flake8]
 max-line-length = 100
