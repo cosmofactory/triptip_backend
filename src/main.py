@@ -1,7 +1,7 @@
+from fastapi import FastAPI
 from sqlalchemy import text
 
 from src.database.database import async_session_maker
-from fastapi import FastAPI
 
 app = FastAPI()
 
