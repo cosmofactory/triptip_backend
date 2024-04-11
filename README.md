@@ -1,3 +1,5 @@
+![CI](https://github.com/cosmosfactory/triptip_backend/actions/workflows/push.yml/badge.svg)
+
 # TripTip project - triptip_backend
 
 Backend part of travel portal TripTip
