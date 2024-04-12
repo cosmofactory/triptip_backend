@@ -35,10 +35,10 @@ jobs:
         run: pip install smokeshow
 
       - name: Download coverage report
-        uses: actions/download-artifact@v3
+        uses: dawidd6/action-download-artifact@v3
         with:
-          name: coverage-report
-          path: htmlcov
+          workflow: ci.yml
+          commit: ${{ github.event.workflow_run.head_sha }}
 
       - name: Upload coverage to Smokeshow
         run: smokeshow upload htmlcov
