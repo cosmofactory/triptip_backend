@@ -5,8 +5,7 @@ on:
     types:
       - completed
     branches:
-      - 'dev'
-      - 'test'
+      - dev
 
 jobs:
   build:
