@@ -22,15 +22,26 @@ jobs:
         with:
           python-version: '3.12.2'
 
-      - run: pip install smokeshow
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-smokeshow
+          restore-keys: |
+            ${{ runner.os }}-pip-smokeshow
+            ${{ runner.os }}-pip-
+
+      - name: Install smokeshow
+        run: pip install smokeshow
+
       - name: Download coverage report
         uses: actions/download-artifact@v3
         with:
           name: coverage-report
-          path: htmlcov/
+          path: htmlcov
 
       - name: Upload coverage to Smokeshow
-        run: smokeshow upload htmlcov/
+        run: smokeshow upload htmlcov
         env:
           SMOKESHOW_GITHUB_STATUS_DESCRIPTION: Coverage {coverage-percentage}
           SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 50
