@@ -1,6 +1,7 @@
 services:
   triptip_service:
     image: cosmosfactory/triptip_backend:latest
+    container_name: triptip_service
     command: poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     ports:
       - 8000:8000
@@ -12,6 +13,7 @@ services:
 
   db:
     image: postgres:16.2-alpine3.18
+    container_name: triptip_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
