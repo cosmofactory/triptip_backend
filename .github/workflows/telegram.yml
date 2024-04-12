@@ -1,0 +1,60 @@
+name: Telegram Notification
+run-name: Telegram notification of ${{ github.ref_name }} by @${{ github.actor }}
+
+on:
+    workflow_run:
+        workflows: [Deploy to Remote Server]
+        types: [completed]
+        branches: [dev]
+    pull_request:
+        branches: [dev]
+
+permissions:
+    statuses: write
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download coverage report
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: ci.yml
+          commit: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Read Coverage Data
+        id: coverage
+        run: |
+          coverage_percentage=$(grep 'span class="pc_cov"' coverage-report/index.html | sed -n 's/.*<span class="pc_cov">\([0-9]*\)%<\/span>.*/\1/p')
+          echo "coverage=coverage_percentage" >> $GITHUB_OUTPUT
+          echo "::set-output name=coverage1::$coverage_percentage"
+
+      - name: Send Telegram message on successful deploy
+        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Deploy to prod was successful!
+            - PR: ${{ github.event.pull_request.title }}
+            - Author: ${{ github.event.pull_request.user.login }}
+            - Test coverage1: ${{ github.event.workflow_run.outputs.coverage }}
+            - Test coverage2: ${{ env.coverage }}
+            - Test coverage3: ${{ steps.coverage.outputs.coverage }}
+            - Test coverage4: ${{ steps.coverage.outputs.coverage1 }}
+
+      - name: Send Telegram message on PR opened
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            📬 A new PR was opened to the dev branch!
+            - PR: #${{ github.event.pull_request.number }}
+            - Title: ${{ github.event.pull_request.title }}
+            - Author: ${{ github.event.pull_request.user.login }}
