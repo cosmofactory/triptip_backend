@@ -28,10 +28,8 @@ jobs:
       - name: Read Coverage Data
         id: coverage
         run: |
-          coverage_percentage=$(cat coverage-report/index.html | pup 'span.pc_cov text{}')
-          coverage_percentage2=$(grep 'span class="pc_cov"' coverage-report/index.html | sed -n 's/.*<span class="pc_cov">\([0-9]*\)%<\/span>.*/\1/p')
+          coverage_percentage=$(grep 'span class="pc_cov"' coverage-report/index.html | sed -n 's/.*<span class="pc_cov">\([0-9]*\)%<\/span>.*/\1/p')
           echo "coverage=coverage_percentage" >> $GITHUB_OUTPUT
-          echo "coverage=coverage_percentage2" >> $GITHUB_OUTPUT
           echo "::set-output name=coverage1::$coverage_percentage"
 
       - name: Send Telegram message on successful deploy
@@ -48,8 +46,6 @@ jobs:
             - Test coverage2: ${{ env.coverage }}
             - Test coverage3: ${{ steps.coverage.outputs.coverage }}
             - Test coverage4: ${{ steps.coverage.outputs.coverage1 }}
-            - Test coverage5: ${{ steps.coverage.outputs.coverage2}}
-            - Test coverage6: ${{ steps.coverage.outputs.coverage2}}
 
       - name: Send Telegram message on PR opened
         if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' }}
