@@ -3,7 +3,7 @@ run-name: Telegram notification of ${{ github.ref_name }} by @${{ github.actor }
 
 on:
     workflow_run:
-        workflows: [CD]
+        workflows: [Deploy to Remote Server]
         types: [completed]
         branches: [dev]
     pull_request:
