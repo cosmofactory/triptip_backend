@@ -53,6 +53,7 @@ jobs:
             cd /root/triptip_backend
             sudo docker compose -f deploy-compose.yaml stop
             sudo docker compose -f deploy-compose.yaml rm -f triptip_service
+            rm .env
             touch .env
             echo MODE=DEV >> .env
             echo DB_HOST=${{ secrets.POSTGRES_HOST }} >> .env
