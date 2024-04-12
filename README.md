@@ -1,3 +1,8 @@
+![Python](https://img.shields.io/badge/python-3.12.2-blue.svg)
+![CI](https://github.com/cosmofactory/triptip_backend/actions/workflows/push.yml/badge.svg)
+[![Coverage](https://coverage-badge.samuelcolvin.workers.dev/cosmofactory/triptip_backend.svg)](https://coverage-badge.samuelcolvin.workers.dev/redirect/cosmofactory/triptip_backend)
+
+
 # TripTip project - triptip_backend
 
 Backend part of travel portal TripTip
@@ -49,6 +54,7 @@ make run_trip_tip_backend_in_container
 Python 3.12, FastAPI, Uvicorn, Postgres, Docker, pytest, nginx, Ruff
 
 **Creators:**
+
 [Ivan Murzinov](https://github.com/IMurzinov) *Frontend, Project Founder* 
 
 [Polina Bykova](https://github.com/pnbykova) *UX/UI*  
