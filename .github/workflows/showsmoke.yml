@@ -1,0 +1,51 @@
+name: Smokeshow
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [dev]
+
+permissions:
+  statuses: write
+
+jobs:
+  smokeshow:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.2'
+
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-smokeshow
+          restore-keys: |
+            ${{ runner.os }}-pip-smokeshow
+            ${{ runner.os }}-pip-
+
+      - name: Install smokeshow
+        run: pip install smokeshow
+
+      - name: Download coverage report
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: ci.yml
+          commit: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Upload coverage to Smokeshow
+        run: smokeshow upload htmlcov
+        env:
+          SMOKESHOW_GITHUB_STATUS_DESCRIPTION: Coverage {coverage-percentage}
+          SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 50
+          SMOKESHOW_GITHUB_CONTEXT: coverage
+          SMOKESHOW_GITHUB_TOKEN: ${{ secrets.TRIPTIP_SMOKESHOW_UPLOAD }}
+          SMOKESHOW_AUTH_KEY: ${{ secrets.SMOKESHOW_AUTH_KEY }}
+          SMOKESHOW_GITHUB_PR_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
