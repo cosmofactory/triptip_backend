@@ -41,7 +41,7 @@ jobs:
           commit: ${{ github.event.workflow_run.head_sha }}
 
       - name: Upload coverage to Smokeshow
-        run: smokeshow upload htmlcov
+        run: smokeshow upload coverage-report
         env:
           SMOKESHOW_GITHUB_STATUS_DESCRIPTION: Coverage {coverage-percentage}
           SMOKESHOW_GITHUB_COVERAGE_THRESHOLD: 50
