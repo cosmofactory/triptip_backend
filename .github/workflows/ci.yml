@@ -1,0 +1,66 @@
+name: CI
+run-name: Push to ${{ github.ref_name }} by @${{ github.actor }}
+
+on:
+  push
+
+jobs:
+
+  test_and_lint:
+    runs-on: ubuntu-22.04
+    services:
+        postgres:
+          image: postgres:14
+          env:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: test_triptip
+          ports:
+            - 5432:5432
+
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v4
+          with:
+            python-version: 3.12.2
+
+        - name: Install poetry
+          uses: abatilo/actions-poetry@v3.0.0
+
+        - name: Setup a local virtual environment
+          run: |
+            poetry config virtualenvs.create true --local
+            poetry config virtualenvs.in-project true --local
+
+        - uses: actions/cache@v3
+          name: Define a cache for the virtual environment based on the dependencies lock file
+          with:
+            path: ./.venv
+            key: venv-${{ hashFiles('poetry.lock') }}
+
+        - name: Install the project dependencies
+          run: poetry install
+
+        - run: mkdir coverage
+
+        - name: Run pytest
+          run: |
+            MODE=TEST poetry run pytest --cov=src --cov-report=html:htmlcov  
+          env:
+            DB_HOST: ${{ secrets.DB_HOST }}
+            DB_PORT: ${{ secrets.DB_PORT }}
+            DB_USER: ${{ secrets.DB_USER }}
+            DB_PASS: ${{ secrets.DB_PASS }}
+            DB_NAME: ${{ secrets.DB_NAME }}
+            MODE: TEST
+            COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
+            CONTEXT: ${{ runner.os }}-py3.12.2
+
+        - name: Run ruff
+          run: poetry run ruff check .
+
+        - name: Archive coverage report
+          uses: actions/upload-artifact@v4
+          with:
+            name: coverage-report
+            path: htmlcov
