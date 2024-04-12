@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_LOGIN }}/triptip_backend:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_LOGIN }}/triptip_backend:latest
 
   deploy:
     name: Deploy to Remote Server
