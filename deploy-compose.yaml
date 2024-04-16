@@ -1,6 +1,6 @@
 services:
   triptip_service:
-    # image: cosmosfactory/triptip_backend:latest
+    image: cosmosfactory/triptip_backend:latest
     build: .
     container_name: triptip_service
     command: poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
