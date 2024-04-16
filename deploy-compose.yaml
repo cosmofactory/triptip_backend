@@ -1,7 +1,6 @@
 services:
   triptip_service:
-    # image: cosmosfactory/triptip_backend:latest
-    build: .
+    image: cosmosfactory/triptip_backend:latest
     container_name: triptip_service
     command: poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     depends_on:
@@ -33,12 +32,11 @@ services:
     #   - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     #   - /home/cosmosfactory/ssl:/etc/nginx/ssl/:ro
     ports:
+      - "80:80"
       - "443:443"
-    links:
-      - triptip_service
     depends_on:
       - triptip_service
-    restart: no
+    restart: always
 
 volumes:
   postgres_data:
