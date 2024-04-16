@@ -24,8 +24,8 @@ services:
 
   nginx:
     build:
-      context: ./nginx/
-      dockerfile: Dockerfile.nginx
+      context: .
+      dockerfile: ./nginx/Dockerfile.nginx
     container_name: triptip_nginx
     # volumes:
     #   - static_value:/var/html/static/
