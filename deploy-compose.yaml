@@ -24,12 +24,11 @@ services:
   nginx:
     build:
       context: .
-      dockerfile: ./nginx/Dockerfile.nginx
+      dockerfile: /nginx/Dockerfile.nginx
     container_name: triptip_nginx
     # volumes:
     #   - static_value:/var/html/static/
     #   - media_value:/var/html/media/
-    #   - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     #   - /home/cosmosfactory/ssl:/etc/nginx/ssl/:ro
     ports:
       - "80:80"
