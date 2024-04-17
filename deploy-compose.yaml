@@ -27,7 +27,7 @@ services:
       dockerfile: ./nginx/Dockerfile.nginx
     container_name: triptip_nginx
     volumes: 
-      - /nginx/certs:/etc/letsencrypt/
+      - /etc/letsencrypt/:/etc/letsencrypt/
     ports:
       - "80:80"
       - "443:443"
