@@ -1,7 +1,6 @@
 services:
   triptip_service:
     image: cosmosfactory/triptip_backend:latest
-    build: .
     container_name: triptip_service
     command: poetry run gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     depends_on:
@@ -27,10 +26,8 @@ services:
       context: .
       dockerfile: ./nginx/Dockerfile.nginx
     container_name: triptip_nginx
-    # volumes:
-    #   - static_value:/var/html/static/
-    #   - media_value:/var/html/media/
-    #   - /home/cosmosfactory/ssl:/etc/nginx/ssl/:ro
+    volumes: 
+      - /nginx/certs:/etc/letsencrypt/
     ports:
       - "80:80"
       - "443:443"
