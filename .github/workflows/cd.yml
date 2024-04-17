@@ -51,8 +51,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /root/triptip_backend
-            sudo docker compose -f deploy-compose.yaml stop
-            sudo docker compose -f deploy-compose.yaml rm -f triptip_service
+            sudo docker compose -f deploy-compose.yaml down
             rm .env
             touch .env
             echo MODE=DEV >> .env
@@ -61,4 +60,5 @@ jobs:
             echo DB_USER=${{ secrets.POSTGRES_USER }} >> .env
             echo DB_PASS=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_NAME=${{ secrets.POSTGRES_DB }} >> .env
+            sudo docker compose -f deploy-compose.yaml build
             sudo docker compose -f deploy-compose.yaml up -d
