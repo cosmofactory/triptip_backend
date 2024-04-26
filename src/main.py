@@ -6,6 +6,7 @@ from src.database.database import async_session_maker
 
 app = FastAPI()
 
+
 origins = ["*"]
 
 
