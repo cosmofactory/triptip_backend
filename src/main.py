@@ -7,9 +7,9 @@ from src.database.database import async_session_maker
 app = FastAPI()
 
 origins = [
-    "https://api.triptip.pro/",
-    "https://swagger.triptip.pro/",
-    "https://triptip.pro/",
+    "https://api.triptip.pro",
+    "https://swagger.triptip.pro",
+    "https://triptip.pro",
     "http://localhost",
     "http://localhost:8000",
 ]
