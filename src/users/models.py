@@ -14,7 +14,7 @@ class User(TimeStampModel):
     username: Mapped[str] = mapped_column(String(256), unique=True)
     password: Mapped[str]
     userpic: Mapped[str | None]
-    bio: Mapped[str | None] = mapped_column(Text(1000), nullable=True)
+    bio: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"

@@ -37,9 +37,11 @@ line-length = 100
 
 [tool.ruff.lint]
 extend-select = ["I", "W", "B", "I",]
+exclude = ["src/migrations/*.py",]
 
 [tool.flake8]
 max-line-length = 100
+exclude = ["src/migrations/*.py",]
 
 [tool.isort]
 profile = "black"
