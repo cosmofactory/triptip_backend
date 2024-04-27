@@ -11,7 +11,6 @@ class TimeStampModel(Base):
     """
     Abstract model for universal and timestamp columns.
 
-    id - primary key for every model,
     created_at - timestamp of creation,
     updated_at - timestamp of last update, autoupdates on every update,
     deleted_at - timestamp of deletion, nullable.
