@@ -6,7 +6,7 @@ from src.users.schemas import SUserNotFound, SUserOutput
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/")
+@router.get("")
 async def get_all_users() -> list[SUserOutput]:
     """Get all users."""
     result = await UserDAO.get_all()

@@ -34,20 +34,20 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - name: Upload Docker Compose File
+      - name: Upload Docker Compose File and Migration Script
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "deploy-compose.yaml"
+          source: "deploy-compose.yaml, src/migrations/"
           target: "/root/triptip_backend"
 
       - name: Executing remote ssh to deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER}}
+          username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /root/triptip_backend
@@ -61,4 +61,5 @@ jobs:
             echo DB_PASS=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_NAME=${{ secrets.POSTGRES_DB }} >> .env
             sudo docker compose -f deploy-compose.yaml build
+            sudo docker run --rm --env-file .env ${{ secrets.DOCKERHUB_LOGIN }}/triptip_backend:latest alembic upgrade head
             sudo docker compose -f deploy-compose.yaml up -d

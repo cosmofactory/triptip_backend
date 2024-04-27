@@ -40,13 +40,13 @@ async def prepare_database():
 @pytest.fixture(scope="session")
 async def ac():
     """Create an AsyncClient instance."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as ac:
         yield ac
 
 
 @pytest.fixture(scope="session")
 async def authenticated_ac():
     """Create an authenticated AsyncClient instance."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as ac:
         # TODO add our custom auth logic here
         yield ac
