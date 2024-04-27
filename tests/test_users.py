@@ -43,11 +43,8 @@ class TestUsers:
         Check that invalid user_id returns 422.
         """
         user = await UserFactory()
-        response = await ac.get(f"/users/{user_id}")
+        response = await ac.get(f"/users/{user_id if user_id else user.id}")
+        assert response.status_code == status
         if not user_id:
-            user_id = user.id
-            response = await ac.get(f"/users/{user_id}")
-            assert response.status_code == status
             assert response.json()["email"] == user.email
             assert response.json()["username"] == user.username
-        assert response.status_code == status

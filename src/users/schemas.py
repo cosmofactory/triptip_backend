@@ -7,6 +7,7 @@ class SUserInput(BaseModel):
     email: str
     password: str
     userpic: str | None
+    bio: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
