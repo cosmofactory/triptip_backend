@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from src.database.database import async_session_maker
@@ -7,6 +8,9 @@ from src.users.router import router as users_router
 app = FastAPI()
 
 app.include_router(users_router)
+
+
+origins = ["*"]
 
 
 @app.get("/about_project")
@@ -23,3 +27,12 @@ async def read_root():
         " Here you will find the most amazing trips and plan your next adventure!"
         f" Database response: {result.all()[0][0]}"
     }
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
