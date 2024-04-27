@@ -10,6 +10,7 @@ class User(TimeStampModel):
 
     __tablename__ = "users"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[EmailStr] = mapped_column(String(256), unique=True)
     username: Mapped[str] = mapped_column(String(256), unique=True)
     password: Mapped[str]
