@@ -6,7 +6,7 @@ class SUserInput(BaseModel):
 
     email: str
     password: str
-    userpic: str
+    userpic: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -17,7 +17,15 @@ class SUserOutput(BaseModel):
     id: int
     email: str
     username: str
-    userpic: str
-    bio: str
+    userpic: str | None
+    bio: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SUserNotFound(BaseModel):
+    """Schema for User not found response."""
+
+    detail: str
 
     model_config = ConfigDict(from_attributes=True)
