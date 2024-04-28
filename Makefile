@@ -19,3 +19,14 @@ install_dependents:
 # Run pytest with correct environment, otherwise tests will fail:
 test:
 	MODE=TEST poetry run pytest
+
+# Alembic block:
+# To create a new migration, run the following command:
+makemigrations:
+	poetry run alembic revision --autogenerate -m `date +%Y%m%d%H%M%S`
+# To apply the migration, run the following command:
+migrate:
+	poetry run alembic upgrade head
+# To revert last migration, run the following command:
+revert_migration:
+	poetry run alembic downgrade -1
