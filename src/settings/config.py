@@ -1,5 +1,6 @@
 from typing import Literal
 
+from authx import AuthX, AuthXConfig
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +23,8 @@ class Settings(BaseSettings):
     TEST_DB_PASS: str = "postgres"
     TEST_DB_NAME: str = "test_db"
 
+    JWT_SECRET_KEY: str
+
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
@@ -36,3 +39,12 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+# Auth settings
+config = AuthXConfig(
+    JWT_ALGORITHM="HS256",
+    JWT_SECRET_KEY=settings.JWT_SECRET_KEY,
+)
+
+security = AuthX(config=config)
