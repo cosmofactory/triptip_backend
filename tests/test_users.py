@@ -38,13 +38,23 @@ class TestUsers:
         """
         Test user detail endpoint.
 
-        Create a user and check if it appears on /users/{user_id} endpoint.
+        Create a user and check if it appears on /users/get_user/{user_id} endpoint.
         Check that nonexistent user returns 404.
         Check that invalid user_id returns 422.
         """
         user = await UserFactory()
-        response = await ac.get(f"/users/{user_id if user_id else user.id}")
+        response = await ac.get(f"/users/get_user/{user_id if user_id else user.id}")
         assert response.status_code == status
         if not user_id:
             assert response.json()["email"] == user.email
             assert response.json()["username"] == user.username
+
+    async def test_user_me(self, authenticated_ac: AsyncClient):
+        """
+        Test user detail endpoint.
+
+        Create a user and check if it appears on /users/me endpoint.
+        """
+        response = await authenticated_ac.get("/users/me")
+        assert response.status_code == HTTPStatus.OK
+        assert response.json()["email"] is not None

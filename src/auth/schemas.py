@@ -21,3 +21,17 @@ class STokens(BaseModel):
 
     access_token: str
     refresh_token: str
+
+
+class TokenData(BaseModel):
+    """Token data schema."""
+
+    email: str
+
+
+class Token(BaseModel):
+    """Token pair schema."""
+
+    access_token: str
+    refresh_token: str | None
+    token_type: str
