@@ -52,6 +52,10 @@ jobs:
             DB_USER: ${{ secrets.DB_USER }}
             DB_PASS: ${{ secrets.DB_PASS }}
             DB_NAME: ${{ secrets.DB_NAME }}
+            JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+            ALGORITHM: ${{ secrets.ALGORITHM }}
+            ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+            REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
             MODE: TEST
             COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
             CONTEXT: ${{ runner.os }}-py3.12.2
