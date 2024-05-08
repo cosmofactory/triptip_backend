@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import insert, select
 
 from src.database.database import async_session_maker
 
@@ -36,3 +36,23 @@ class BaseDAO:
                 return result
             else:
                 raise HTTPException(status_code=404, detail="Object not found")
+
+    @classmethod
+    async def get_one_or_none(cls, **filter_params):
+        """
+        Get one object from the table.
+
+        If no object found raise 404.
+        """
+        async with async_session_maker() as session:
+            query = select(cls.model.__table__.columns).filter_by(**filter_params)
+            result = await session.execute(query)
+            return result.mappings().one_or_none()
+
+    @classmethod
+    async def create(cls, **object_data):
+        """Create object in the table."""
+        async with async_session_maker() as session:
+            query = insert(cls.model).values(**object_data)
+            await session.execute(query)
+            await session.commit()
