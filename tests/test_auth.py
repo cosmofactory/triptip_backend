@@ -31,10 +31,10 @@ class TestAuth:
             "/auth/register",
             json=user_data,
         )
+        assert response.status_code == status
         if response.status_code == HTTPStatus.CREATED:
             check_user = await UserDAO.get_one_or_none(email=user_data["email"])
             assert check_user.email == user_data["email"]
-        assert response.status_code == status
 
     async def test_user_login(self, ac: AsyncClient):
         """

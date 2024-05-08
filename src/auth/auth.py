@@ -46,7 +46,7 @@ async def authenticate_user(email, password) -> SUserLogin:
 def create_access_token(data: dict, expires_delta: datetime.timedelta | None = None):
     """Create access token with the given data and expiration time."""
     to_encode = data.copy()
-    if expires_delta:
+    if expires_delta is not None:
         expire = datetime.datetime.now(datetime.timezone.utc) + expires_delta
     else:
         expire = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=15)
