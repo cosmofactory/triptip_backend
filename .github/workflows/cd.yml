@@ -60,7 +60,7 @@ jobs:
             echo DB_USER=${{ secrets.POSTGRES_USER }} >> .env
             echo DB_PASS=${{ secrets.POSTGRES_PASSWORD }} >> .env
             echo DB_NAME=${{ secrets.POSTGRES_DB }} >> .env
-            esho JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} >> .env
+            echo JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} >> .env
             echo ALGORITHM=${{ secrets.ALGORITHM }} >> .env
             echo ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }} >> .env
             echo REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }} >> .env
