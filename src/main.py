@@ -1,11 +1,11 @@
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.settings.config import settings
 from sqlalchemy import text
 
 from src.auth.router import router as auth_router
 from src.database.database import async_session_maker
+from src.settings.config import settings
 from src.users.router import router as users_router
 
 app = FastAPI()
