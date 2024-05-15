@@ -64,6 +64,7 @@ jobs:
             echo ALGORITHM=${{ secrets.ALGORITHM }} >> .env
             echo ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }} >> .env
             echo REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }} >> .env
+            echo SENTRY_KEY=${{ secrets.SENTRY_KEY }} >> .env
             sudo docker compose -f deploy-compose.yaml pull
             sudo docker compose -f deploy-compose.yaml build --no-cache
             sudo docker compose -f deploy-compose.yaml up -d

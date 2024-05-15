@@ -33,6 +33,7 @@ bcrypt = "^4.0.1"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 python-multipart = "^0.0.9"
+sentry-sdk = {extras = ["fastapi"], version = "^2.1.1"}
 
 
 [build-system]
