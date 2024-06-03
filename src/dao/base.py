@@ -1,5 +1,6 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import insert, select
+from sqlalchemy.exc import IntegrityError
 
 from src.database.database import async_session_maker
 
@@ -30,9 +31,9 @@ class BaseDAO:
         If no object found raise 404.
         """
         async with async_session_maker() as session:
-            query = select(cls.model.__table__.columns).filter_by(**filter_params)
+            query = select(cls.model).filter_by(**filter_params)
             result = await session.execute(query)
-            if result := result.mappings().one_or_none():
+            if result := result.unique().scalar_one_or_none():
                 return result
             else:
                 raise HTTPException(status_code=404, detail="Object not found")
@@ -53,6 +54,13 @@ class BaseDAO:
     async def create(cls, **object_data):
         """Create object in the table."""
         async with async_session_maker() as session:
-            query = insert(cls.model).values(**object_data)
-            await session.execute(query)
-            await session.commit()
+            query = insert(cls.model).values(**object_data).returning(cls.model)
+            try:
+                result = await session.execute(query)
+                await session.commit()
+                return result.scalars().first()
+            except IntegrityError:
+                await session.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="Object already exists"
+                ) from None

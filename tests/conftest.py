@@ -58,7 +58,7 @@ async def authenticated_ac():
     """
     async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as ac:
         password = get_password_hash("async_client_password1")
-        await UserDAO.create(
+        user = await UserDAO.create(
             email="test@test.ru", username="LoggedInUser", password=password, bio="Some bio"
         )
         response = await ac.post(
@@ -71,4 +71,5 @@ async def authenticated_ac():
         assert response.status_code == HTTPStatus.OK
         assert ac.cookies.get("access_token") is not None
         assert ac.cookies.get("refresh_token") is not None
+        ac.user = user
         yield ac

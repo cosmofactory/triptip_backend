@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING, List
+
 from pydantic import EmailStr
 from sqlalchemy import String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import TimeStampModel
+
+if TYPE_CHECKING:
+    from src.trips.models import Trip
 
 
 class User(TimeStampModel):
@@ -16,6 +21,8 @@ class User(TimeStampModel):
     password: Mapped[str]
     userpic: Mapped[str | None]
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="author")
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"

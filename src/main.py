@@ -6,12 +6,14 @@ from sqlalchemy import text
 from src.auth.router import router as auth_router
 from src.database.database import async_session_maker
 from src.settings.config import settings
+from src.trips.router import router as trips_router
 from src.users.router import router as users_router
 
 app = FastAPI()
 
 app.include_router(users_router)
 app.include_router(auth_router)
+app.include_router(trips_router)
 
 
 if sentry_key := settings.SENTRY_KEY:
