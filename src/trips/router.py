@@ -55,3 +55,10 @@ async def create_location(
     """Create a new location."""
     created_location = await TripService.create_location(trip_id, location, user.id)
     return created_location
+
+
+@router.get("/{trip_id}/locations", response_model=list[SlocationOutput])
+async def get_locations(trip_id: int) -> list[SlocationOutput]:
+    """Get all locations for a trip."""
+    locations = await TripService.get_locations(trip_id)
+    return locations

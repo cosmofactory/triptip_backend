@@ -41,3 +41,9 @@ class TripService:
         location_data["trip_id"] = trip_id
         created_location = await LocationDAO.create(**location_data)
         return created_location
+
+    @staticmethod
+    async def get_locations(trip_id: int):
+        """Get list of locations for a trip."""
+        locations = await LocationDAO.get_all(trip_id=trip_id)
+        return locations

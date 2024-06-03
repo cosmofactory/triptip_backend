@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
     LocationCreationFactory,
+    LocationFactory,
     TripCreationFactory,
     TripFactory,
 )
@@ -89,6 +90,9 @@ class TestTrips:
         Test location creation endpoint.
 
         Create a trip and add a location to it.
+        1. Check location creation for an authenticated user.
+        2. Check location creation for a user who is not the author of the trip.
+        3. Check location creation for an anonymous user.s
         """
 
         async def test_loc(user_id, status, anonymous=False):
@@ -109,3 +113,18 @@ class TestTrips:
         user = await UserFactory()
         await test_loc(user.id, HTTPStatus.FORBIDDEN)
         await test_loc(user.id, HTTPStatus.UNAUTHORIZED, anonymous=True)
+
+    async def test_get_locations(self, authenticated_ac: AsyncClient):
+        """
+        Test get locations endpoint.
+
+        Create a trip, add some locations to it, and check if the get locations endpoint returns them.
+        """
+        user = await UserFactory()
+        trip = await TripFactory(author_id=user.id)
+        for _ in range(3):
+            await LocationFactory(trip_id=trip.id)
+
+        response = await authenticated_ac.get(f"/trips/{trip.id}/locations")
+        assert response.status_code == HTTPStatus.OK
+        assert len(response.json()) == 3
