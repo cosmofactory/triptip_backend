@@ -50,7 +50,6 @@ class LocationFactory(BaseFactory):
 
 
 class TripWith3LocationsFactory(TripFactory):
-    # locations = factory.RelatedFactoryList(LocationFactory, factory_related_name="trip_id", size=3)
     memberhip1 = factory.RelatedFactory(LocationFactory, factory_related_name="locations")
     memberhip2 = factory.RelatedFactory(LocationFactory, factory_related_name="locations")
     memberhip3 = factory.RelatedFactory(LocationFactory, factory_related_name="locations")

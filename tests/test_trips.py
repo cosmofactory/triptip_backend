@@ -118,7 +118,8 @@ class TestTrips:
         """
         Test get locations endpoint.
 
-        Create a trip, add some locations to it, and check if the get locations endpoint returns them.
+        Create a trip, add some locations to it,
+         and check if the get locations endpoint returns them.
         """
         user = await UserFactory()
         trip = await TripFactory(author_id=user.id)
