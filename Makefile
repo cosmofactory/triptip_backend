@@ -1,4 +1,4 @@
-run_trip_tip_backend_locally:
+run:
 	uvicorn src.main:app --port 8000 --reload
 
 run_trip_tip_backend_in_container:
