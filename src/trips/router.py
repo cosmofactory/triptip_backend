@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
+from src.database.database import SessionDep
 from src.trips.schemas import (
     SDetailedTripOutput,
     SLocationInput,
@@ -18,16 +19,16 @@ router = APIRouter(prefix="/trips", tags=["Trips"])
 
 
 @router.get("", response_model=list[STripOutput])
-async def get_trips(limit: int = 50) -> list[STripOutput]:
+async def get_trips(db: SessionDep, limit: int = 50) -> list[STripOutput]:
     """Get all trips."""
-    trips = await TripService.get_trips(limit)
+    trips = await TripService.get_trips(db, limit)
     return trips
 
 
 @router.get("/{trip_id}", response_model=SDetailedTripOutput)
-async def get_trip_details(trip_id: int) -> SDetailedTripOutput:
+async def get_trip_details(trip_id: int, db: SessionDep) -> SDetailedTripOutput:
     """Get detailed trip information."""
-    trip = await TripService.get_trip(trip_id)
+    trip = await TripService.get_trip(db, trip_id)
     return trip
 
 
@@ -37,10 +38,10 @@ async def get_trip_details(trip_id: int) -> SDetailedTripOutput:
     responses={status.HTTP_400_BAD_REQUEST: {"model": SObjectAlreadyExists}},
 )
 async def create_trip(
-    trip: STripInput, user: Annotated[SUserOutput, Depends(get_current_user)]
+    trip: STripInput, user: Annotated[SUserOutput, Depends(get_current_user)], db: SessionDep
 ) -> STripOutput:
     """Create a new trip."""
-    created_trip = await TripService.create_trip(trip, user.id)
+    created_trip = await TripService.create_trip(db, trip, user.id)
     return created_trip
 
 
@@ -50,15 +51,18 @@ async def create_trip(
     responses={status.HTTP_400_BAD_REQUEST: {"model": SObjectAlreadyExists}},
 )
 async def create_location(
-    trip_id: int, location: SLocationInput, user: Annotated[SUserOutput, Depends(get_current_user)]
+    trip_id: int,
+    location: SLocationInput,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
 ) -> SlocationOutput:
     """Create a new location."""
-    created_location = await TripService.create_location(trip_id, location, user.id)
+    created_location = await TripService.create_location(db, trip_id, location, user.id)
     return created_location
 
 
 @router.get("/{trip_id}/locations", response_model=list[SlocationOutput])
-async def get_locations(trip_id: int) -> list[SlocationOutput]:
+async def get_locations(trip_id: int, db: SessionDep) -> list[SlocationOutput]:
     """Get all locations for a trip."""
-    locations = await TripService.get_locations(trip_id)
+    locations = await TripService.get_locations(db, trip_id)
     return locations

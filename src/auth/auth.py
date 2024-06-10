@@ -5,9 +5,11 @@ from fastapi import Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.dao import AuthDAO, RefreshTokenDAO
 from src.auth.schemas import SUserLogin, SUserRegister, TokenData
+from src.database.database import get_db
 from src.settings.config import settings
 from src.users.models import User
 
@@ -25,9 +27,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-async def hash_user_password(user_data: SUserRegister) -> str:
+async def hash_user_password(db: AsyncSession, user_data: SUserRegister) -> str:
     """Check if the user with the provided email exists and hash the password."""
-    check_existing_user = await AuthDAO.get_one_or_none(email=user_data.email)
+    check_existing_user = await AuthDAO.get_one_or_none(db, email=user_data.email)
     if check_existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists"
@@ -35,9 +37,9 @@ async def hash_user_password(user_data: SUserRegister) -> str:
     return get_password_hash(user_data.password)
 
 
-async def authenticate_user(email, password) -> SUserLogin:
+async def authenticate_user(db: AsyncSession, email, password) -> SUserLogin:
     """Check if the user with the provided email and password exists."""
-    user = await AuthDAO.get_one_or_none(email=email)
+    user = await AuthDAO.get_one_or_none(db, email=email)
     if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     return user
@@ -67,7 +69,7 @@ def create_refresh_token(data: dict, expires_delta: datetime.timedelta | None = 
     return encoded_jwt
 
 
-async def create_tokens(user: User) -> dict:
+async def create_tokens(db: AsyncSession, user: User) -> dict:
     """
     Call the create_access_token and create_refresh_token.
 
@@ -80,6 +82,7 @@ async def create_tokens(user: User) -> dict:
         data={"sub": user.email}, expires_delta=refresh_token_expires
     )
     await RefreshTokenDAO.create(
+        db,
         user_id=user.id,
         token=refresh_token,
         expires_at=datetime.datetime.now(datetime.timezone.utc) + refresh_token_expires,
@@ -107,7 +110,7 @@ async def set_cookies(response: Response, access_token: str, refresh_token: str)
     )
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db=Depends(get_db)):
     """Get the current user with the given token."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -122,7 +125,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception from None
-    user = await AuthDAO.get_one_or_none(email=token_data.email)
+    user = await AuthDAO.get_one_or_none(db, email=token_data.email)
     if not user:
         raise credentials_exception
     return user

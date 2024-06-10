@@ -1,7 +1,7 @@
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dao.base import BaseDAO
-from src.database.database import async_session_maker
 from src.trips.models import Location, Trip
 
 
@@ -11,14 +11,13 @@ class TripDAO(BaseDAO):
     model = Trip
 
     @classmethod
-    async def get_all(cls, limit: int) -> dict:
+    async def get_all(cls, db: AsyncSession, limit: int) -> dict:
         """Get list of trips."""
-        async with async_session_maker() as session:
-            query = select(
-                Trip.id, Trip.name, Trip.description, Trip.date_from, Trip.date_to, Trip.author_id
-            ).limit(limit)
-            result = await session.execute(query)
-            return result.mappings().all()
+        query = select(
+            Trip.id, Trip.name, Trip.description, Trip.date_from, Trip.date_to, Trip.author_id
+        ).limit(limit)
+        result = await db.execute(query)
+        return result.mappings().all()
 
 
 class LocationDAO(BaseDAO):
