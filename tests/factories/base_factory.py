@@ -3,22 +3,6 @@ import inspect
 import factory
 from factory.builder import BuildStep, StepBuilder, parse_declarations
 
-# session =
-
-# class BaseFactory(SQLAlchemyModelFactory):
-#     class Meta:
-#         abstract = True
-#         sqlalchemy_session_persistence = "commit"
-#         sqlalchemy_session = session
-
-#     @classmethod
-#     async def _create(cls, model_class, *args, **kwargs):
-#         async with cls._meta.sqlalchemy_session() as session:
-#             obj = model_class(*args, **kwargs)
-#             session.add(obj)
-#             await session.commit()
-#             return obj
-
 
 class AsyncFactory(factory.Factory):
     @classmethod
@@ -46,10 +30,8 @@ class AsyncFactory(factory.Factory):
 
 
 class AsyncStepBuilder(StepBuilder):
-    # Redefine build function that await for instance creation and awaitable postgenerations
     async def build(self, parent_step=None, force_sequence=None):
         """Build a factory instance."""
-        # TODO: Handle "batch build" natively
         pre, post = parse_declarations(
             self.extras,
             base_pre=self.factory_meta.pre_declarations,
