@@ -89,7 +89,7 @@ async def refresh(request: Request, response: Response, db: SessionDep) -> Token
         except JWTError:
             raise wrong_credentials from None
         user = await AuthDAO.get_one_or_none(db, email=email)
-        new_tokens = await create_tokens(user)
+        new_tokens = await create_tokens(db, user)
         await set_cookies(response, new_tokens.get("access_token"), new_tokens.get("refresh_token"))
         return Token(**new_tokens)
     else:

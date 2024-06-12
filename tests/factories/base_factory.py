@@ -1,9 +1,7 @@
+import pytest
 from factory.alchemy import SQLAlchemyModelFactory
 
-from tests.conftest import session
-
-# session = scoped_session(async_session_maker)
-
+session = pytest.mark.usefixtures("session")
 
 class BaseFactory(SQLAlchemyModelFactory):
     class Meta:
@@ -11,10 +9,10 @@ class BaseFactory(SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
         sqlalchemy_session = session
 
-    # @classmethod
-    # async def _create(cls, model_class, *args, **kwargs):
-    #     async with TestingSessionLocal() as session:
-    #         obj = model_class(*args, **kwargs)
-    #         session.add(obj)
-    #         await session.commit()
-    #         return obj
+    @classmethod
+    async def _create(cls, model_class, *args, **kwargs):
+        async with cls._meta.sqlalchemy_session() as session:
+            obj = model_class(*args, **kwargs)
+            session.add(obj)
+            await session.commit()
+            return obj

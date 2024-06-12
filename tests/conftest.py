@@ -1,69 +1,45 @@
 from http import HTTPStatus
-import asyncio
+
 import pytest
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-import pytest_asyncio
+
 from src.auth.auth import get_password_hash
-from src.database.database import Base, engine, get_db
+from src.database.database import Base, get_db
 from src.main import app
-from src.settings.config import settings
 from src.users.dao import UserDAO
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
-@pytest.fixture(scope="session")
-def event_loop(request):
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+engine = create_async_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+
+SessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
 
 
 @pytest.fixture(scope="session")
-async def engine(event_loop):
-    assert settings.MODE == "TEST"
-    engine = create_async_engine(
-        SQLALCHEMY_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-
+async def session():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
+    async with SessionLocal() as session:
 
-    yield engine
+        def override_get_db():
+            return session
 
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    engine.sync_engine.dispose()
-
-
-@pytest.fixture(scope="session")
-async def session(engine):
-    SessionLocal = async_sessionmaker(
-        bind=engine,
-        expire_on_commit=False,
-        autocommit=False,
-        autoflush=False,
-    )
-
-    async with engine.connect() as conn:
-        tsx = await conn.begin()
-        async with SessionLocal(bind=conn) as session:
-            nested_tsx = await conn.begin_nested()
-            yield session
-
-            if nested_tsx.is_active:
-                await nested_tsx.rollback()
-            await tsx.rollback()
-
-
-app.dependency_overrides[get_db] = session
+        app.dependency_overrides[get_db] = override_get_db
+        yield session
 
 
 @pytest.fixture(scope="session")
@@ -74,7 +50,7 @@ async def ac():
 
 
 @pytest.fixture(scope="session")
-async def authenticated_ac(session):
+async def authenticated_ac(ac, session):
     """
     Create an authenticated AsyncClient instance.
 
@@ -84,7 +60,11 @@ async def authenticated_ac(session):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as ac:
         password = get_password_hash("async_client_password1")
         user = await UserDAO.create(
-            session, email="test@test.ru", username="LoggedInUser", password=password, bio="Some bio"
+            session,
+            email="test@test.ru",
+            username="LoggedInUser",
+            password=password,
+            bio="Some bio",
         )
         response = await ac.post(
             "/auth/login",
