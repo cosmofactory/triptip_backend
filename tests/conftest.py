@@ -3,7 +3,6 @@ from http import HTTPStatus
 import pytest
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
-from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 

@@ -26,7 +26,7 @@ class Trip(TimeStampModel):
     date_to: Mapped[date]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-    author: Mapped["User"] = relationship("User", back_populates="trips")
+    author: Mapped["User"] = relationship("User", back_populates="trips", lazy="selectin")
     locations: Mapped[List["Location"]] = relationship(
         "Location",
         back_populates="trip",

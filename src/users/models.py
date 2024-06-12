@@ -22,7 +22,7 @@ class User(TimeStampModel):
     userpic: Mapped[str | None]
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="author")
+    trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="author", lazy="selectin")
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"
