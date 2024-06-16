@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.auth import get_password_hash
 from src.users.dao import UserDAO
@@ -17,7 +18,9 @@ class TestAuth:
             ("X", "TestUser1", HTTPStatus.UNPROCESSABLE_ENTITY),
         ],
     )
-    async def test_user_registration(self, ac: AsyncClient, email, username, status):
+    async def test_user_registration(
+        self, ac: AsyncClient, session: AsyncSession, email, username, status
+    ):
         """
         Test user registration.
 
@@ -33,10 +36,10 @@ class TestAuth:
         )
         assert response.status_code == status
         if response.status_code == HTTPStatus.CREATED:
-            check_user = await UserDAO.get_one_or_none(email=user_data["email"])
+            check_user = await UserDAO.get_one_or_none(session, email=user_data["email"])
             assert check_user.email == user_data["email"]
 
-    async def test_user_login(self, ac: AsyncClient):
+    async def test_user_login(self, ac: AsyncClient, session: AsyncSession):
         """
         Test user login.
 
@@ -46,6 +49,7 @@ class TestAuth:
         """
         password = get_password_hash("login_password4")
         await UserDAO.create(
+            session,
             email="user_login_test@test.ru",
             username="UserLoginTest",
             password=password,

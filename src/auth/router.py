@@ -12,6 +12,7 @@ from src.auth.auth import (
 )
 from src.auth.dao import AuthDAO
 from src.auth.schemas import SUserRegister, Token
+from src.database.database import SessionDep
 from src.settings.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -22,16 +23,16 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     status_code=status.HTTP_201_CREATED,
     responses={status.HTTP_409_CONFLICT: {"description": "User with this email already exists"}},
 )
-async def register_user(user_data: SUserRegister):
+async def register_user(user_data: SUserRegister, db: SessionDep):
     """
     Register a new user.
 
     Check if the user with the provided email already exists.
     If the user does not exist, hash the password and create a new user.
     """
-    hashed_password = await hash_user_password(user_data)
+    hashed_password = await hash_user_password(db, user_data)
     await AuthDAO.create(
-        email=user_data.email, password=hashed_password, username=user_data.username
+        db, email=user_data.email, password=hashed_password, username=user_data.username
     )
 
 
@@ -41,7 +42,7 @@ async def register_user(user_data: SUserRegister):
     responses={status.HTTP_401_UNAUTHORIZED: {"description": "Invalid credentials"}},
 )
 async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], response: Response
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], response: Response, db: SessionDep
 ) -> Token:
     """
     Log in the user.
@@ -51,14 +52,14 @@ async def login(
     Both access and refresh tokens will be added to cookies.
     Return token values.
     """
-    user = await authenticate_user(form_data.username, form_data.password)
+    user = await authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    tokens = await create_tokens(user)
+    tokens = await create_tokens(db, user)
     await set_cookies(response, tokens["access_token"], tokens["refresh_token"])
     return Token(**tokens)
 
@@ -68,7 +69,7 @@ async def login(
     status_code=status.HTTP_200_OK,
     responses={status.HTTP_401_UNAUTHORIZED: {"description": "Invalid credentials"}},
 )
-async def refresh(request: Request, response: Response) -> Token:
+async def refresh(request: Request, response: Response, db: SessionDep) -> Token:
     """
     Refresh access token.
     Check if the refresh token is valid and exists in cookies.
@@ -87,8 +88,8 @@ async def refresh(request: Request, response: Response) -> Token:
             email: str = payload.get("sub")
         except JWTError:
             raise wrong_credentials from None
-        user = await AuthDAO.get_one_or_none(email=email)
-        new_tokens = await create_tokens(user)
+        user = await AuthDAO.get_one_or_none(db, email=email)
+        new_tokens = await create_tokens(db, user)
         await set_cookies(response, new_tokens.get("access_token"), new_tokens.get("refresh_token"))
         return Token(**new_tokens)
     else:

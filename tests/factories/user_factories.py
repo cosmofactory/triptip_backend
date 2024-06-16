@@ -1,13 +1,13 @@
 import factory
 import factory.fuzzy
 
-from src.users.models import User
-from tests.factories.base_factory import BaseFactory
+from src.users.dao import UserDAO
+from tests.factories.base_factory import AsyncFactory
 
 
-class UserFactory(BaseFactory):
+class UserFactory(AsyncFactory):
     class Meta:
-        model = User
+        model = UserDAO
 
     email = factory.Sequence(lambda n: f"user{n + 1}@triptip.pro")
     username = factory.fuzzy.FuzzyText(length=10)

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from src.auth.router import router as auth_router
-from src.database.database import async_session_maker
+from src.database.database import SessionDep
 from src.settings.config import settings
 from src.trips.router import router as trips_router
 from src.users.router import router as users_router
@@ -28,14 +28,12 @@ origins = ["*"]
 
 
 @app.get("/about_project")
-async def read_root():
+async def read_root(db: SessionDep):
     """Just a simple test endpoint showing that the project somehow for no reason works."""
-
-    async with async_session_maker() as session:
-        try:
-            result = await session.execute(text("SELECT 'Database works, yay!'"))
-        except Exception as e:
-            return {"Error": f"An error occurred during database query: {str(e)}"}
+    try:
+        result = await db.execute(text("SELECT 'Database works, yay!'"))
+    except Exception as e:
+        return {"Error": f"An error occurred during database query: {str(e)}"}
     return {
         "Info": "This is our project TripTip."
         " Here you will find the most amazing trips and plan your next adventure!"

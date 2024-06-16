@@ -7,13 +7,13 @@ import factory
 import factory.fuzzy
 from pydantic import BaseModel
 
-from src.trips.models import Location, Trip
-from tests.factories.base_factory import BaseFactory
+from src.trips.dao import LocationDAO, TripDAO
+from tests.factories.base_factory import AsyncFactory
 
 
-class TripFactory(BaseFactory):
+class TripFactory(AsyncFactory):
     class Meta:
-        model = Trip
+        model = TripDAO
 
     name = factory.fuzzy.FuzzyText(length=10)
     description = factory.fuzzy.FuzzyText(length=100)
@@ -40,9 +40,9 @@ class LocationCreationFactory(BaseModel):
     description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
 
 
-class LocationFactory(BaseFactory):
+class LocationFactory(AsyncFactory):
     class Meta:
-        model = Location
+        model = LocationDAO
 
     name = factory.fuzzy.FuzzyText(length=10)
     description = factory.fuzzy.FuzzyText(length=100)

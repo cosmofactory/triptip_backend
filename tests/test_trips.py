@@ -3,6 +3,7 @@ from http import HTTPStatus
 import pytest
 from httpx import AsyncClient
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
@@ -46,7 +47,7 @@ class TestTrips:
         response = await ac.post("/trips", json=trip_data)
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    async def test_trip_list(self, ac: AsyncClient):
+    async def test_trip_list(self, ac: AsyncClient, session: AsyncSession):
         """
         Test trips list endpoint.
 
@@ -54,22 +55,22 @@ class TestTrips:
         """
         trips = []
         for _ in range(10):
-            user = await UserFactory()
-            trip = await TripFactory(author_id=user.id)
+            user = await UserFactory.create(db=session)
+            trip = await TripFactory.create(db=session, author_id=user.id)
             trips.append(trip.name)
         response = await ac.get("/trips")
         assert response.status_code == HTTPStatus.OK
         for trip in trips:
             assert any(response_trip["name"] == trip for response_trip in response.json())
 
-    async def test_trip_detail(self, ac: AsyncClient):
+    async def test_trip_detail(self, ac: AsyncClient, session: AsyncSession):
         """
         Test trip detail endpoint.
 
         Create a trip and check if it appears on /trips/{trip_id} endpoint.
         """
-        user = await UserFactory()
-        trip = await TripFactory(author_id=user.id)
+        user = await UserFactory.create(db=session)
+        trip = await TripFactory.create(db=session, author_id=user.id)
         response = await ac.get(f"/trips/{trip.id}")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["name"] == trip.name
@@ -85,7 +86,9 @@ class TestTrips:
         response = await ac.get(f"/trips/{non_existent_id}")
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    async def test_location_creation(self, ac, authenticated_ac: AsyncClient):
+    async def test_location_creation(
+        self, ac, authenticated_ac: AsyncClient, session: AsyncSession
+    ):
         """
         Test location creation endpoint.
 
@@ -96,7 +99,7 @@ class TestTrips:
         """
 
         async def test_loc(user_id, status, anonymous=False):
-            trip = await TripFactory(author_id=user_id)
+            trip = await TripFactory.create(db=session, author_id=user_id)
             location = LocationCreationFactory()
             location_data = location.model_dump()
             if anonymous:
@@ -109,23 +112,22 @@ class TestTrips:
             if status == HTTPStatus.CREATED:
                 assert response.json()["name"] == location.name
 
-        await test_loc(authenticated_ac.user.id, HTTPStatus.CREATED)
-        user = await UserFactory()
+        await test_loc(authenticated_ac.user.awaitable_attrs.id, HTTPStatus.CREATED)
+        user = await UserFactory.create(db=session)
         await test_loc(user.id, HTTPStatus.FORBIDDEN)
         await test_loc(user.id, HTTPStatus.UNAUTHORIZED, anonymous=True)
 
-    async def test_get_locations(self, authenticated_ac: AsyncClient):
+    async def test_get_locations(self, authenticated_ac: AsyncClient, session: AsyncSession):
         """
         Test get locations endpoint.
 
         Create a trip, add some locations to it,
          and check if the get locations endpoint returns them.
         """
-        user = await UserFactory()
-        trip = await TripFactory(author_id=user.id)
+        user = await UserFactory.create(db=session)
+        trip = await TripFactory.create(db=session, author_id=user.id)
         for _ in range(3):
-            await LocationFactory(trip_id=trip.id)
-
+            await LocationFactory.create(db=session, trip_id=trip.id)
         response = await authenticated_ac.get(f"/trips/{trip.id}/locations")
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) == 3
