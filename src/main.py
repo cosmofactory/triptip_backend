@@ -1,10 +1,14 @@
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqladmin import Admin
 from sqlalchemy import text
 
+from src.admin.locations import LocationAdmin
+from src.admin.trips import TripAdmin
+from src.admin.users import UserAdmin
 from src.auth.router import router as auth_router
-from src.database.database import SessionDep
+from src.database.database import SessionDep, engine
 from src.settings.config import settings
 from src.trips.router import router as trips_router
 from src.users.router import router as users_router
@@ -48,3 +52,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# SQLAdmin config
+admin = Admin(app, engine=engine, title="TripTip Admin")
+
+admin.add_view(UserAdmin)
+admin.add_view(TripAdmin)
+admin.add_view(LocationAdmin)
