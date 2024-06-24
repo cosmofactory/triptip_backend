@@ -1,5 +1,5 @@
 run:
-	uvicorn src.main:app --port 8000 --reload
+	poetry run uvicorn src.main:app --forwarded-allow-ips='*' --proxy-headers --host 0.0.0.0 --port 8000 --workers 4
 
 run_trip_tip_backend_in_container:
 	docker compose build
