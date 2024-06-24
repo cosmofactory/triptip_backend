@@ -1,6 +1,7 @@
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from gunicorn.http import Request
 from sqladmin import Admin
 from sqlalchemy import text
 
@@ -29,6 +30,16 @@ if sentry_key := settings.SENTRY_KEY:
     )
 
 origins = ["*"]
+
+
+@app.middleware("http")
+async def middleware_events(request: Request, call_next):
+    if settings.MODE != "DEV":
+        request.scope["scheme"] = "https"
+
+    response = await call_next(request)
+
+    return response
 
 
 @app.get("/about_project")
