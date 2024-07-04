@@ -1,4 +1,3 @@
-from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.trips.dao import LocationDAO, TripDAO
@@ -33,13 +32,6 @@ class TripService:
         db: AsyncSession, trip_id: int, location_data: SLocationInput, user_id: int
     ):
         """Create a new location."""
-        # TODO это говнокод, надо сделать нормальный класс PermissionService
-        trip = await TripDAO.get_object_or_404(db, id=trip_id)
-        if trip.author_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You can't add data to the trip of another user",
-            )
         location_data = location_data.model_dump()
         location_data["trip_id"] = trip_id
         created_location = await LocationDAO.create(db, **location_data)

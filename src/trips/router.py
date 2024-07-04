@@ -3,7 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
+from src.auth.dependencies import is_author_or_read_only
 from src.database.database import SessionDep
+from src.trips.dao import TripDAO
 from src.trips.schemas import (
     SDetailedTripOutput,
     SLocationInput,
@@ -56,13 +58,21 @@ async def create_location(
     user: Annotated[SUserOutput, Depends(get_current_user)],
     db: SessionDep,
 ) -> SlocationOutput:
-    """Create a new location."""
+    """
+    Create a new location.
+
+    Check if the user is the author of the trip.
+    """
+    await is_author_or_read_only(db, trip_id, TripDAO, user)
     created_location = await TripService.create_location(db, trip_id, location, user.id)
     return created_location
 
 
 @router.get("/{trip_id}/locations", response_model=list[SlocationOutput])
-async def get_locations(trip_id: int, db: SessionDep) -> list[SlocationOutput]:
+async def get_locations(
+    trip_id: int,
+    db: SessionDep,
+) -> list[SlocationOutput]:
     """Get all locations for a trip."""
     locations = await TripService.get_locations(db, trip_id)
     return locations

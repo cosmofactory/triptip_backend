@@ -21,6 +21,7 @@ class User(TimeStampModel):
     password: Mapped[str]
     userpic: Mapped[str | None]
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_admin: Mapped[bool] = mapped_column(default=False)
 
     trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="author", lazy="selectin")
 

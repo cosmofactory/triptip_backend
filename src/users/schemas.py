@@ -20,6 +20,7 @@ class SUserOutput(BaseModel):
     username: str
     userpic: str | None
     bio: str | None
+    is_admin: bool
 
     model_config = ConfigDict(from_attributes=True)
 
