@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
-from src.auth.dependencies import is_author_or_read_only
+from src.auth.dependencies import Permissions
 from src.database.database import SessionDep
 from src.trips.dao import TripDAO
 from src.trips.schemas import (
@@ -63,7 +63,8 @@ async def create_location(
 
     Check if the user is the author of the trip.
     """
-    await is_author_or_read_only(db, trip_id, TripDAO, user)
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(trip_id, TripDAO, user)
     created_location = await TripService.create_location(db, trip_id, location, user.id)
     return created_location
 
