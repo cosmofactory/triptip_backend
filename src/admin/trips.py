@@ -1,5 +1,6 @@
 from sqladmin import ModelView
 
+from src.admin.utils import get_sqladmin_mixin
 from src.settings.constants import (
     DESCRIPTION_LENGTH_ADMIN,
     NUMBER_OF_DOTS_AFTER_REDUCTION,
@@ -8,7 +9,7 @@ from src.settings.constants import (
 from src.trips.models import Trip
 
 
-class TripAdmin(ModelView, model=Trip):
+class TripAdmin(get_sqladmin_mixin(Trip), ModelView, model=Trip):
     """
     Admin view for Trip model.
 
