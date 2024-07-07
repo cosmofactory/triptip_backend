@@ -1,10 +1,11 @@
 from sqladmin import ModelView
 
+from src.admin.utils import get_sqladmin_mixin
 from src.settings.constants import NUMBER_OF_DOTS_AFTER_REDUCTION, PASSWORD_LENTH_ADMIN, AdminIcons
 from src.users.models import User
 
 
-class UserAdmin(ModelView, model=User):
+class UserAdmin(get_sqladmin_mixin(User), ModelView, model=User):
     """
     Admin view for User model.
 

@@ -1,5 +1,6 @@
 from sqladmin import ModelView
 
+from src.admin.utils import get_sqladmin_mixin
 from src.settings.constants import (
     DESCRIPTION_LENGTH_ADMIN,
     NUMBER_OF_DOTS_AFTER_REDUCTION,
@@ -8,7 +9,7 @@ from src.settings.constants import (
 from src.trips.models import Location
 
 
-class LocationAdmin(ModelView, model=Location):
+class LocationAdmin(get_sqladmin_mixin(Location), ModelView, model=Location):
     """
     Admin view for Location model.
 
