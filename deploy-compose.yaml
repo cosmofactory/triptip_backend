@@ -23,11 +23,6 @@ services:
     expose:
       - ${DB_PORT}
 
-  triptip_frontend:
-    image: cosmosfactory/triptip_frontend:latest
-    container_name: triptip_frontend
-    restart: always
-
   nginx:
     image: cosmosfactory/triptip_frontend:latest
     container_name: triptip_nginx
