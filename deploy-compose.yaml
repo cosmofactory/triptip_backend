@@ -24,17 +24,16 @@ services:
       - ${DB_PORT}
 
   nginx:
-    build:
-      context: .
-      dockerfile: ./nginx/Dockerfile.nginx
+    image: cosmosfactory/triptip_frontend:latest
     container_name: triptip_nginx
-    volumes: 
+    volumes:
       - /etc/letsencrypt/:/etc/letsencrypt/
     ports:
       - "80:80"
       - "443:443"
     depends_on:
       - triptip_service
+      - triptip_frontend
     restart: always
 
 volumes:
