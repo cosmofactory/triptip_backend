@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.models import TimeStampModel
 
 if TYPE_CHECKING:
+    from src.auth.models import RefreshToken
     from src.trips.models import Trip
 
 
@@ -23,7 +24,17 @@ class User(TimeStampModel):
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
 
-    trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="author", lazy="selectin")
+    trips: Mapped[List["Trip"]] = relationship(
+        "Trip",
+        back_populates="author",
+        lazy="joined",
+        cascade="save-update, merge",
+    )
+    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
+        "RefreshToken",
+        cascade="all, delete",
+        back_populates="user",
+    )
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"

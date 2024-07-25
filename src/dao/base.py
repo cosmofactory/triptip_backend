@@ -40,7 +40,7 @@ class BaseDAO:
         """
         Get one object from the table.
 
-        If no object found raise 404.
+        If no object is found, return None.
         """
         query = select(cls.model.__table__.columns).filter_by(**filter_params)
         result = await db.execute(query)
