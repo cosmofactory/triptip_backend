@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqladmin import Admin
 from sqlalchemy import text
 
+from src.admin.auth import authentication_backend
 from src.admin.locations import LocationAdmin
 from src.admin.trips import TripAdmin
 from src.admin.users import UserAdmin
@@ -55,7 +56,9 @@ app.add_middleware(
 
 
 # SQLAdmin config
-admin = Admin(app, engine=engine, title="TripTip Admin")
+admin = Admin(
+    app, engine=engine, title="TripTip Admin", authentication_backend=authentication_backend
+)
 
 admin.add_view(UserAdmin)
 admin.add_view(TripAdmin)
