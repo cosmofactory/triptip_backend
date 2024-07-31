@@ -24,7 +24,7 @@ class AdminAuth(AuthenticationBackend):
             except HTTPException:
                 return False
             tokens = await create_tokens(db, user)
-            request.session.update({"token": tokens.get("access_token")})
+            request.session.update({"access_token": tokens.get("access_token")})
 
         return True
 
@@ -36,7 +36,7 @@ class AdminAuth(AuthenticationBackend):
         """
         Check if the user is authenticated and is an admin.
         """
-        if token := request.session.get("token"):
+        if token := request.session.get("access_token"):
             async with SessionLocal() as db:
                 if user := await get_current_user(token, db):
                     if user.is_admin:
