@@ -10,3 +10,4 @@ class AdminIcons:
     USERS_ICON = "fa-solid fa-user"
     TRIPS_ICON = "fa-solid fa-plane"
     LOCATIONS_ICON = "fa-brands fa-instagram"
+    ROUTES_ICON = "fa-solid fa-road"

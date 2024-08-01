@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from src.admin.auth import authentication_backend
 from src.admin.locations import LocationAdmin
+from src.admin.routes import RouteAdmin
 from src.admin.trips import TripAdmin
 from src.admin.users import UserAdmin
 from src.auth.router import router as auth_router
@@ -63,3 +64,4 @@ admin = Admin(
 admin.add_view(UserAdmin)
 admin.add_view(TripAdmin)
 admin.add_view(LocationAdmin)
+admin.add_view(RouteAdmin)
