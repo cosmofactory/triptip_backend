@@ -1,10 +1,11 @@
 from datetime import date
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import Enum, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import TimeStampModel
+from src.settings.enums import RegionEnum
 
 if TYPE_CHECKING:
     from src.users.models import User
@@ -22,6 +23,7 @@ class Trip(TimeStampModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
     description: Mapped[Optional[str]]
+    region: Mapped[RegionEnum] = mapped_column(Enum(RegionEnum), nullable=False)
     date_from: Mapped[date]
     date_to: Mapped[date]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
