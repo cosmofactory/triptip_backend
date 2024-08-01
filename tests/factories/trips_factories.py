@@ -7,6 +7,7 @@ import factory
 import factory.fuzzy
 from pydantic import BaseModel
 
+from src.settings.enums import RegionEnum
 from src.trips.dao import LocationDAO, TripDAO
 from tests.factories.base_factory import AsyncFactory
 
@@ -17,6 +18,7 @@ class TripFactory(AsyncFactory):
 
     name = factory.fuzzy.FuzzyText(length=10)
     description = factory.fuzzy.FuzzyText(length=100)
+    region = factory.fuzzy.FuzzyChoice(RegionEnum)
     date_from = factory.fuzzy.FuzzyDate(
         datetime.date.today() + datetime.timedelta(days=5),
         datetime.date.today() + datetime.timedelta(days=10),
@@ -31,6 +33,7 @@ class TripFactory(AsyncFactory):
 class TripCreationFactory(BaseModel):
     name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
     description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    region: RegionEnum = random.choice([region.value for region in RegionEnum])
     date_from: date = (date.today() + timedelta(days=random.randint(5, 10))).isoformat()
     date_to: date = (date.today() + timedelta(days=random.randint(15, 25))).isoformat()
 

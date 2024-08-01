@@ -14,7 +14,13 @@ class TripDAO(BaseDAO):
     async def get_all(cls, db: AsyncSession, limit: int) -> dict:
         """Get list of trips."""
         query = select(
-            Trip.id, Trip.name, Trip.description, Trip.date_from, Trip.date_to, Trip.author_id
+            Trip.id,
+            Trip.name,
+            Trip.description,
+            Trip.region,
+            Trip.date_from,
+            Trip.date_to,
+            Trip.author_id,
         ).limit(limit)
         result = await db.execute(query)
         return result.mappings().all()

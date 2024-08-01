@@ -1,6 +1,7 @@
 from datetime import date
 
 from pydantic import BaseModel, ConfigDict
+
 from src.settings.enums import RegionEnum
 
 
@@ -33,8 +34,8 @@ class STripOutput(BaseModel):
 
     id: int
     name: str
-    region: RegionEnum
     description: str
+    region: RegionEnum
     date_from: date
     date_to: date
     author_id: int
