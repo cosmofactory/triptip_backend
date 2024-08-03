@@ -131,3 +131,17 @@ class TestTrips:
         response = await authenticated_ac.get(f"/trips/{trip.id}/locations")
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) == 3
+
+    async def test_trip_creation_with_fake_region(
+        self, authenticated_ac: AsyncClient, session: AsyncSession
+    ):
+        """
+        Test trip creation endpoint with fake region.
+
+        Create a trip with a fake region and check if it returns a 422 error.
+        """
+        trip = TripCreationFactory()
+        trip_data = trip.model_dump()
+        trip_data["region"] = "Land of Sannikov"
+        response = await authenticated_ac.post("/trips", json=trip_data)
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
