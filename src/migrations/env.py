@@ -6,7 +6,7 @@ from sqlalchemy import engine_from_config, pool
 from src.database.database import Base, DATABASE_URL
 from src.users.models import User
 from src.auth.models import RefreshToken
-from src.trips.models import Trip, Location
+from src.trips.models import Trip, Location, Route
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
