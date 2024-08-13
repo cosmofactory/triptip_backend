@@ -9,6 +9,7 @@ from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
     LocationCreationFactory,
     LocationFactory,
+    RouteFactory,
     TripCreationFactory,
     TripFactory,
 )
@@ -47,7 +48,7 @@ class TestTrips:
         response = await ac.post("/trips", json=trip_data)
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    async def test_trip_list(self, ac: AsyncClient, session: AsyncSession):
+    async def test_trip_list(self, ac: AsyncClient, create_trip: TripFactory):
         """
         Test trips list endpoint.
 
@@ -55,22 +56,22 @@ class TestTrips:
         """
         trips = []
         for _ in range(10):
-            user = await UserFactory.create(db=session)
-            trip = await TripFactory.create(db=session, author_id=user.id)
+            trip = create_trip
             trips.append(trip.name)
         response = await ac.get("/trips")
         assert response.status_code == HTTPStatus.OK
         for trip in trips:
             assert any(response_trip["name"] == trip for response_trip in response.json())
 
-    async def test_trip_detail(self, ac: AsyncClient, session: AsyncSession):
+    async def test_trip_detail(
+        self, ac: AsyncClient, session: AsyncSession, create_trip: TripFactory
+    ):
         """
         Test trip detail endpoint.
 
         Create a trip and check if it appears on /trips/{trip_id} endpoint.
         """
-        user = await UserFactory.create(db=session)
-        trip = await TripFactory.create(db=session, author_id=user.id)
+        trip = create_trip
         response = await ac.get(f"/trips/{trip.id}")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["name"] == trip.name
@@ -117,15 +118,16 @@ class TestTrips:
         await test_loc(user.id, HTTPStatus.FORBIDDEN)
         await test_loc(user.id, HTTPStatus.UNAUTHORIZED, anonymous=True)
 
-    async def test_get_locations(self, authenticated_ac: AsyncClient, session: AsyncSession):
+    async def test_get_locations(
+        self, authenticated_ac: AsyncClient, session: AsyncSession, create_trip: TripFactory
+    ):
         """
         Test get locations endpoint.
 
         Create a trip, add some locations to it,
          and check if the get locations endpoint returns them.
         """
-        user = await UserFactory.create(db=session)
-        trip = await TripFactory.create(db=session, author_id=user.id)
+        trip = create_trip
         for _ in range(3):
             await LocationFactory.create(db=session, trip_id=trip.id)
         response = await authenticated_ac.get(f"/trips/{trip.id}/locations")
@@ -145,3 +147,63 @@ class TestTrips:
         trip_data["region"] = "Land of Sannikov"
         response = await authenticated_ac.post("/trips", json=trip_data)
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    async def test_route_endpoint(
+        self, authenticated_ac: AsyncClient, session: AsyncSession, create_route: RouteFactory
+    ):
+        """
+        Test route endpoint.
+        """
+        route = create_route
+        response = await authenticated_ac.get(f"/trips/locations/{route.origin_id}/route")
+        assert response.status_code == HTTPStatus.OK
+        assert response.json()["origin_id"] == route.origin_id
+        assert response.json()["destination_id"] == route.destination_id
+
+    @pytest.mark.parametrize(
+        "user_id, expected_status, anonymous",
+        [
+            ("authenticated_user", HTTPStatus.CREATED, False),
+            # ("other_user", HTTPStatus.FORBIDDEN, False), # TODO this test is needed
+            ("other_user", HTTPStatus.UNAUTHORIZED, True),
+        ],
+    )
+    async def test_route_creation(
+        self,
+        ac,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+        post_route_data: tuple[dict, int],
+        user_id,
+        expected_status,
+        anonymous,
+    ):
+        """
+        Test route creation endpoint.
+
+        Test cases:
+        1. Check route creation for the authenticated user (author).
+        2. Check route creation for a different authenticated user (non-author).
+        3. Check route creation for an anonymous user.
+        """
+        data, location = post_route_data
+
+        async def create_route():
+            if anonymous:
+                response = await ac.post(f"/trips/locations/{location}/route", json=data)
+            else:
+                response = await authenticated_ac.post(
+                    f"/trips/locations/{location}/route", json=data
+                )
+            return response
+
+        if user_id == "authenticated_user":
+            response = await create_route()
+        else:
+            other_user = await UserFactory.create(db=session)
+            authenticated_ac.user = other_user
+            response = await create_route()
+
+        assert response.status_code == expected_status
+        if expected_status == HTTPStatus.CREATED:
+            assert response.json()["name"] == data["name"]

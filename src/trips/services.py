@@ -1,7 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.trips.dao import LocationDAO, TripDAO
-from src.trips.schemas import SDetailedTripOutput, SLocationInput, STripInput, STripOutput
+from src.trips.dao import LocationDAO, RouteDAO, TripDAO
+from src.trips.schemas import (
+    SDetailedTripOutput,
+    SLocationInput,
+    SRouteInput,
+    STripInput,
+    STripOutput,
+)
 
 
 class TripService:
@@ -42,3 +48,17 @@ class TripService:
         """Get list of locations for a trip."""
         locations = await LocationDAO.get_all(db, trip_id=trip_id)
         return locations
+
+    @staticmethod
+    async def get_route(db: AsyncSession, location_id: int):
+        """Get route between two locations."""
+        route = await RouteDAO.get_object_or_404(db, origin_id=location_id)
+        return route
+
+    @staticmethod
+    async def create_route(db: AsyncSession, route_data: SRouteInput, user_id: int):
+        """Create a new route."""
+        route_data = route_data.model_dump()
+        route_data["author_id"] = user_id
+        created_route = await RouteDAO.create(db, **route_data)
+        return created_route

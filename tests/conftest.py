@@ -10,6 +10,12 @@ from src.auth.auth import get_password_hash
 from src.database.database import Base, get_db
 from src.main import app
 from src.users.dao import UserDAO
+from tests.factories.fixtures import (  # noqa: F401
+    create_location,
+    create_route,
+    create_trip,
+    post_route_data,
+)
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

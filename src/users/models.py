@@ -8,7 +8,7 @@ from src.database.models import TimeStampModel
 
 if TYPE_CHECKING:
     from src.auth.models import RefreshToken
-    from src.trips.models import Trip
+    from src.trips.models import Route, Trip
 
 
 class User(TimeStampModel):
@@ -26,6 +26,12 @@ class User(TimeStampModel):
 
     trips: Mapped[List["Trip"]] = relationship(
         "Trip",
+        back_populates="author",
+        lazy="joined",
+        cascade="save-update, merge",
+    )
+    routes: Mapped[List["Route"]] = relationship(
+        "Route",
         back_populates="author",
         lazy="joined",
         cascade="save-update, merge",

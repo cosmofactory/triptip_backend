@@ -11,6 +11,8 @@ from src.trips.schemas import (
     SLocationInput,
     SlocationOutput,
     SObjectAlreadyExists,
+    SRouteInput,
+    SRouteOutput,
     STripInput,
     STripOutput,
 )
@@ -77,3 +79,30 @@ async def get_locations(
     """Get all locations for a trip."""
     locations = await TripService.get_locations(db, trip_id)
     return locations
+
+
+@router.get("/locations/{location_id}/route", response_model=SRouteOutput)
+async def get_route(
+    location_id: int,
+    db: SessionDep,
+) -> SRouteOutput:
+    """
+    Get route for a location.
+
+    Location ID is the origin of the route.
+    """
+    route = await TripService.get_route(db, location_id)
+    return route
+
+
+@router.post("/locations/{location_id}/route", status_code=status.HTTP_201_CREATED)
+async def create_route(
+    trip: SRouteInput, user: Annotated[SUserOutput, Depends(get_current_user)], db: SessionDep
+) -> SRouteOutput:
+    """
+    Create a new route.
+
+    Location ID is the origin of the route.
+    """
+    route = await TripService.create_route(db, trip, user.id)
+    return route
