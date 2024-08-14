@@ -160,50 +160,52 @@ class TestTrips:
         assert response.json()["origin_id"] == route.origin_id
         assert response.json()["destination_id"] == route.destination_id
 
-    @pytest.mark.parametrize(
-        "user_id, expected_status, anonymous",
-        [
-            ("authenticated_user", HTTPStatus.CREATED, False),
-            # ("other_user", HTTPStatus.FORBIDDEN, False), # TODO this test is needed
-            ("other_user", HTTPStatus.UNAUTHORIZED, True),
-        ],
-    )
-    async def test_route_creation(
-        self,
-        ac,
-        authenticated_ac: AsyncClient,
-        session: AsyncSession,
-        post_route_data: tuple[dict, int],
-        user_id,
-        expected_status,
-        anonymous,
-    ):
-        """
-        Test route creation endpoint.
 
-        Test cases:
-        1. Check route creation for the authenticated user (author).
-        2. Check route creation for a different authenticated user (non-author).
-        3. Check route creation for an anonymous user.
-        """
+@pytest.mark.parametrize(
+    "user_id, expected_status, anonymous",
+    [
+        ("authenticated_user", HTTPStatus.CREATED, False),
+        ("other_user", HTTPStatus.FORBIDDEN, False),
+        ("other_user", HTTPStatus.UNAUTHORIZED, True),
+    ],
+)
+async def test_route_creation(
+    ac,
+    authenticated_ac: AsyncClient,
+    session: AsyncSession,
+    post_route_data: tuple[dict, int],
+    post_route_data_for_others_location: tuple[dict, int],
+    user_id,
+    expected_status,
+    anonymous,
+):
+    """
+    Test route creation endpoint.
+
+    Test cases:
+    1. Check route creation for the authenticated user (author).
+    2. Check route creation for a different authenticated user (non-author).
+    3. Check route creation for an anonymous user.
+    """
+    if user_id == "authenticated_user":
         data, location = post_route_data
+    else:
+        data, location = post_route_data_for_others_location
 
-        async def create_route():
-            if anonymous:
-                response = await ac.post(f"/trips/locations/{location}/route", json=data)
-            else:
-                response = await authenticated_ac.post(
-                    f"/trips/locations/{location}/route", json=data
-                )
-            return response
-
-        if user_id == "authenticated_user":
-            response = await create_route()
+    async def create_route():
+        if anonymous:
+            response = await ac.post(f"/trips/locations/{location}/route", json=data)
         else:
-            other_user = await UserFactory.create(db=session)
-            authenticated_ac.user = other_user
-            response = await create_route()
+            response = await authenticated_ac.post(f"/trips/locations/{location}/route", json=data)
+        return response
 
-        assert response.status_code == expected_status
-        if expected_status == HTTPStatus.CREATED:
-            assert response.json()["name"] == data["name"]
+    if user_id == "authenticated_user":
+        response = await create_route()
+    else:
+        other_user = await UserFactory.create(db=session)
+        authenticated_ac.user = other_user
+        response = await create_route()
+
+    assert response.status_code == expected_status
+    if expected_status == HTTPStatus.CREATED:
+        assert response.json()["name"] == data["name"]

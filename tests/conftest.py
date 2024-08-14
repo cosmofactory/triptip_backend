@@ -12,9 +12,12 @@ from src.main import app
 from src.users.dao import UserDAO
 from tests.factories.fixtures import (  # noqa: F401
     create_location,
+    create_location_from_second_user,
     create_route,
     create_trip,
+    create_trip_from_second_user,
     post_route_data,
+    post_route_data_for_others_location,
 )
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

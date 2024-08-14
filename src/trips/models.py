@@ -59,7 +59,7 @@ class Location(TimeStampModel):
     description: Mapped[Optional[str]]
     trip_id: Mapped[int] = mapped_column(ForeignKey("trips.id"))
 
-    trip: Mapped["Trip"] = relationship("Trip", back_populates="locations")
+    trip: Mapped["Trip"] = relationship("Trip", back_populates="locations", lazy="joined")
     outbound_route: Mapped["Route"] = relationship(
         "Route", back_populates="origin", foreign_keys="[Route.origin_id]"
     )
@@ -68,6 +68,11 @@ class Location(TimeStampModel):
     )
 
     __table_args__ = (UniqueConstraint("trip_id", "name", name="_trip_name_uc"),)
+
+    @property
+    def author_id(self) -> int:
+        """Get author_id of the location."""
+        return self.trip.author_id
 
     def __repr__(self) -> str:
         return f"Location(id={self.id!r}, name={self.name!r})"

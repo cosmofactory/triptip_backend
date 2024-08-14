@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status
 from src.auth.auth import get_current_user
 from src.auth.dependencies import Permissions
 from src.database.database import SessionDep
-from src.trips.dao import TripDAO
+from src.trips.dao import LocationDAO, TripDAO
 from src.trips.schemas import (
     SDetailedTripOutput,
     SLocationInput,
@@ -97,12 +97,18 @@ async def get_route(
 
 @router.post("/locations/{location_id}/route", status_code=status.HTTP_201_CREATED)
 async def create_route(
-    trip: SRouteInput, user: Annotated[SUserOutput, Depends(get_current_user)], db: SessionDep
+    location_id: int,
+    trip: SRouteInput,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
 ) -> SRouteOutput:
     """
     Create a new route.
 
     Location ID is the origin of the route.
+    Only location author can create a route.
     """
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(location_id, LocationDAO, user)
     route = await TripService.create_route(db, trip, user.id)
     return route
