@@ -38,10 +38,13 @@ class AdminAuth(AuthenticationBackend):
         """
         if token := request.session.get("token"):
             async with SessionLocal() as db:
-                if user := await get_current_user(token, db):
-                    if user.is_admin:
-                        return True
-        request.session.clear()
+                try:
+                    if user := await get_current_user(token, db):
+                        if user.is_admin:
+                            return True
+                except HTTPException:
+                    pass
+        return False
 
 
 authentication_backend = AdminAuth(secret_key="...")
