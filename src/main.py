@@ -1,3 +1,4 @@
+import logfire
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,15 @@ from src.trips.router import router as trips_router
 from src.users.router import router as users_router
 
 app = FastAPI()
+
+logfire.configure(
+    pydantic_plugin=logfire.PydanticPlugin(record="all"),
+    token=settings.LOGFIRE_TOKEN,
+    collect_system_metrics=True,
+)
+logfire.instrument_fastapi(app)
+logfire.instrument_asyncpg()
+
 
 app.include_router(users_router)
 app.include_router(auth_router)
