@@ -36,6 +36,16 @@ python-multipart = "^0.0.9"
 sentry-sdk = {extras = ["fastapi"], version = "^2.1.1"}
 aiosqlite = "^0.20.0"
 sqladmin = "^0.17.0"
+logfire = {extras = ["system-metrics"], version = "^0.50.1"}
+opentelemetry-instrumentation-httpx = "^0.47b0"
+opentelemetry-instrumentation-jinja2 = "^0.47b0"
+opentelemetry-instrumentation-asyncpg = "^0.47b0"
+opentelemetry-instrumentation-urllib = "^0.47b0"
+opentelemetry-instrumentation-sqlite3 = "^0.47b0"
+opentelemetry-instrumentation-urllib3 = "^0.47b0"
+opentelemetry-instrumentation-fastapi = "^0.47b0"
+opentelemetry-instrumentation-sqlalchemy = "^0.47b0"
+opentelemetry-instrumentation-requests = "^0.47b0"
 
 
 [build-system]
@@ -65,3 +75,6 @@ addopts = "-vv -p no:cacheprovider"
 [tool.ruff.lint.flake8-bugbear]
 # Allow default arguments like, e.g., `data: List[str] = fastapi.Query(None)`.
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.logfire]
+pydantic_plugin_record = "all"
