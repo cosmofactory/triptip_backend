@@ -81,6 +81,8 @@ class SRouteInput(BaseModel):
 
     name: str
     description: str
+    origin_id: int
+    destination_id: int
 
 
 class SRouteOutput(BaseModel):
@@ -89,5 +91,7 @@ class SRouteOutput(BaseModel):
     id: int
     name: str
     description: str
+    origin_id: int
+    destination_id: int
 
     model_config = ConfigDict(from_attributes=True)
