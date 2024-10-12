@@ -56,6 +56,7 @@ jobs:
             ALGORITHM: ${{ secrets.ALGORITHM }}
             ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
             REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+            LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
             SERVICE_NAME: pytest
             AWS_ACCESS_KEY_ID: test
             AWS_SECRET_ACCESS_KEY: test
