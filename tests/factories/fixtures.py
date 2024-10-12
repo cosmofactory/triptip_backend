@@ -3,7 +3,7 @@ import os
 import boto3
 import pytest
 from httpx import AsyncClient
-from moto import mock_aws
+from moto import mock_aws as aws
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.settings.config import settings
@@ -89,15 +89,15 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="session")
-@mock_aws
 async def mock_s3_bucket():
-    s3 = boto3.resource("s3")
-    bucket_name = "test_bucket"
-    s3.create_bucket(Bucket=bucket_name)
-    return bucket_name
+    with aws():
+        s3 = boto3.client("s3", region_name="us-east-1")
+        s3.create_bucket(Bucket="test_bucket")
+        yield s3
 
 
 @pytest.fixture()
 def mock_aws(monkeypatch):
+    """This fixture is needed for async compatibility of aioboto with moto."""
     with mock_aio_aws(monkeypatch):
         yield
