@@ -18,7 +18,7 @@ install_dependents:
 
 # Run pytest with correct environment, otherwise tests will fail:
 test:
-	MODE=TEST poetry run pytest
+	MODE=TEST SERVICE_NAME=pytest poetry run pytest
 
 # Alembic block:
 # To create a new migration, run the following command:
