@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     SENTRY_KEY: str | None = None
 
     LOGFIRE_TOKEN: str | None = None
+    SERVICE_NAME: str = "localtest"
 
     @property
     def DATABASE_URL(self) -> str:

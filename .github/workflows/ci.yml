@@ -56,6 +56,10 @@ jobs:
             ALGORITHM: ${{ secrets.ALGORITHM }}
             ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
             REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+            SERVICE_NAME: pytest
+            AWS_ACCESS_KEY_ID: test
+            AWS_SECRET_ACCESS_KEY: test
+            AWS_REGION: us-east-1
             MODE: TEST
             COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
             CONTEXT: ${{ runner.os }}-py3.12.2
