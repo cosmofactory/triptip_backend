@@ -11,11 +11,14 @@ from src.database.database import Base, get_db
 from src.main import app
 from src.users.dao import UserDAO
 from tests.factories.fixtures import (  # noqa: F401
+    aws_credentials,
     create_location,
     create_location_from_second_user,
     create_route,
     create_trip,
     create_trip_from_second_user,
+    mock_aws,
+    mock_s3_bucket,
     post_route_data,
     post_route_data_for_others_location,
 )

@@ -46,6 +46,8 @@ opentelemetry-instrumentation-urllib3 = "^0.47b0"
 opentelemetry-instrumentation-fastapi = "^0.47b0"
 opentelemetry-instrumentation-sqlalchemy = "^0.47b0"
 opentelemetry-instrumentation-requests = "^0.47b0"
+aioboto3 = "^13.1.1"
+moto = "^5.0.16"
 
 
 [build-system]
