@@ -22,6 +22,8 @@ logfire.configure(
     pydantic_plugin=logfire.PydanticPlugin(record="all"),
     token=settings.LOGFIRE_TOKEN,
     collect_system_metrics=True,
+    inspect_arguments=True,
+    service_name=settings.SERVICE_NAME,
 )
 logfire.instrument_fastapi(app)
 logfire.instrument_asyncpg()

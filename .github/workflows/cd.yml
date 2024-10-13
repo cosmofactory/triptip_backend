@@ -66,6 +66,11 @@ jobs:
             echo REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }} >> .env
             echo SENTRY_KEY=${{ secrets.SENTRY_KEY }} >> .env
             echo LOGFIRE_TOKEN=${{ secrets.LOGFIRE_TOKEN }} >> .env
+            echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} >> .env
+            echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> .env
+            echo AWS_REGION=${{ secrets.AWS_REGION }} >> .env
+            echo SERVICE_NAME=triptip >> .env
+
             sudo docker compose -f deploy-compose.yaml pull
             sudo docker compose -f deploy-compose.yaml build --no-cache
             sudo docker compose -f deploy-compose.yaml up -d
