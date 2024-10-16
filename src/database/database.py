@@ -10,7 +10,7 @@ from src.settings.config import settings
 DATABASE_URL = settings.DATABASE_URL
 DATABASE_PARAMS = {}
 
-engine = create_async_engine(DATABASE_URL, echo=True, **DATABASE_PARAMS)
+engine = create_async_engine(DATABASE_URL, **DATABASE_PARAMS)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 

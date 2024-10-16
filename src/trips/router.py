@@ -3,7 +3,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
-from src.auth.dependencies import Permissions
 from src.database.database import SessionDep
 from src.trips.dao import LocationDAO, TripDAO
 from src.trips.schemas import (
@@ -18,6 +17,7 @@ from src.trips.schemas import (
 )
 from src.trips.services import TripService
 from src.users.schemas import SUserOutput
+from src.utils.dependencies import Permissions
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 

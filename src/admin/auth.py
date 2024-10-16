@@ -3,8 +3,8 @@ from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
 from src.auth.auth import authenticate_user, create_tokens, get_current_user
-from src.auth.dependencies import Permissions
 from src.database.database import SessionLocal
+from src.utils.dependencies import Permissions
 
 
 class AdminAuth(AuthenticationBackend):

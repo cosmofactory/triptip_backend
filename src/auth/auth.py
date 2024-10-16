@@ -12,6 +12,7 @@ from src.auth.schemas import SUserLogin, SUserRegister, TokenData
 from src.database.database import get_db
 from src.settings.config import settings
 from src.users.models import User
+from src.users.schemas import SUserOutput
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -110,7 +111,9 @@ async def set_cookies(response: Response, access_token: str, refresh_token: str)
     )
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db=Depends(get_db)):
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)], db=Depends(get_db)
+) -> SUserOutput:
     """Get the current user with the given token."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -128,4 +131,4 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db=Dep
     user = await AuthDAO.get_one_or_none(db, email=token_data.email)
     if not user:
         raise credentials_exception
-    return user
+    return SUserOutput.model_validate(user)

@@ -23,7 +23,10 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     status_code=status.HTTP_201_CREATED,
     responses={status.HTTP_409_CONFLICT: {"description": "User with this email already exists"}},
 )
-async def register_user(user_data: SUserRegister, db: SessionDep):
+async def register_user(
+    user_data: SUserRegister,
+    db: SessionDep,
+):
     """
     Register a new user.
 

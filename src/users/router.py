@@ -1,11 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
 from src.database.database import SessionDep
 from src.users.schemas import SUserNotFound, SUserOutput
 from src.users.service import UserService
+from src.utils.dependencies import upload_image
+from src.utils.exceptions import SErrorResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -32,3 +34,17 @@ async def read_users_me(
 ) -> SUserOutput:
     """Get current user."""
     return current_user
+
+
+@router.post(
+    "/me/userpic_upload",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_400_BAD_REQUEST: {"model": SErrorResponse}},
+)
+async def userpic_upload(
+    current_user: Annotated[SUserOutput, Depends(get_current_user)],
+    userpic: Annotated[str, Depends(upload_image)],
+    db: SessionDep,
+) -> SUserOutput:
+    user = await UserService.upload_userpic_to_current_user(db, current_user, userpic)
+    return user

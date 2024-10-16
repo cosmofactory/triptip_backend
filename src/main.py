@@ -42,7 +42,16 @@ if sentry_key := settings.SENTRY_KEY:
         enable_tracing=True,
     )
 
-origins = ["*"]
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://localhost:8080",
+    "https://triptip.pro",
+    "https://triptip.pro/",
+    "https://swagger.triptip.pro",
+    "https://swagger.triptip.pro/",
+]
 
 
 @app.get("/about_project")
