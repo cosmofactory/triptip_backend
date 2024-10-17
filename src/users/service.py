@@ -18,3 +18,11 @@ class UserService:
     async def get_user_by_id(db: AsyncSession, user_id: int) -> SUserOutput:
         """Return user by id."""
         return await UserDAO.get_object_or_404(db, id=user_id)
+
+    @staticmethod
+    async def upload_userpic_to_current_user(
+        db: AsyncSession, user: SUserOutput, userpic: str
+    ) -> SUserOutput:
+        user.userpic = userpic
+        user = await UserDAO.update(db, user.id, **user.model_dump(include={"userpic"}))
+        return SUserOutput.model_validate(user)

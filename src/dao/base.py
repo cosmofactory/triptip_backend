@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,7 +36,7 @@ class BaseDAO:
             raise HTTPException(status_code=404, detail="Object not found")
 
     @classmethod
-    async def get_one_or_none(cls, db: AsyncSession, **filter_params):
+    async def get_one_or_none(cls, db: AsyncSession, **filter_params: dict):
         """
         Get one object from the table.
 
@@ -47,7 +47,7 @@ class BaseDAO:
         return result.mappings().one_or_none()
 
     @classmethod
-    async def create(cls, db: AsyncSession, **object_data):
+    async def create(cls, db: AsyncSession, **object_data: dict):
         """Create object in the table."""
         query = insert(cls.model).values(**object_data).returning(cls.model)
         try:
@@ -59,3 +59,16 @@ class BaseDAO:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Object already exists"
             ) from None
+
+    @classmethod
+    async def update(cls, db: AsyncSession, obj_id: int, **object_data: dict):
+        """Update object in the table."""
+        query = (
+            update(cls.model)
+            .where(cls.model.id == obj_id)
+            .values(**object_data)
+            .returning(cls.model)
+        )
+        result = await db.execute(query)
+        await db.commit()
+        return result.scalars().first()

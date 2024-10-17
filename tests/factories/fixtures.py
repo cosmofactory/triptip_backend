@@ -83,12 +83,14 @@ def aws_credentials():
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
     os.environ["AWS_REGION"] = "us-east-1"
+    os.environ["AWS_BUCKET_NAME"] = "test_bucket"
     settings.AWS_ACCESS_KEY_ID = "testing"
     settings.AWS_SECRET_ACCESS_KEY = "testing"
     settings.AWS_REGION = "us-east-1"
+    settings.AWS_BUCKET_NAME = "test_bucket"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 async def mock_s3_bucket():
     with aws():
         s3 = boto3.client("s3", region_name="us-east-1")
