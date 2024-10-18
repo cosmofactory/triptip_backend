@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
 from src.database.database import SessionDep
+from src.trips.schemas import STripOutput
 from src.users.schemas import SUserNotFound, SUserOutput
 from src.users.service import UserService
 from src.utils.dependencies import upload_image
@@ -48,3 +49,9 @@ async def userpic_upload(
 ) -> SUserOutput:
     user = await UserService.upload_userpic_to_current_user(db, current_user, userpic)
     return user
+
+
+@router.get("/get_user/{user_id}/trips")
+async def get_user_trips(user_id: int, db: SessionDep) -> list[STripOutput]:
+    result = await UserService.get_user_trips(db, user_id)
+    return result

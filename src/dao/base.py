@@ -10,7 +10,7 @@ class BaseDAO:
     model = None
 
     @classmethod
-    async def get_all(cls, db: AsyncSession, **filter_params):
+    async def get_all(cls, db: AsyncSession, limit: int = None, **filter_params):
         """
         Get all objects from the table.
 

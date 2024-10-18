@@ -209,3 +209,41 @@ async def test_route_creation(
     assert response.status_code == expected_status
     if expected_status == HTTPStatus.CREATED:
         assert response.json()["name"] == data["name"]
+
+
+@pytest.mark.parametrize(
+    "number_of_user_trips, number_of_secound_user_trips",
+    [
+        (5, 2),
+        (11, 0),
+        (0, 5),
+        (1, 3),
+    ],
+)
+async def test_user_trip_agregation(
+    authenticated_ac: AsyncClient,
+    session: AsyncSession,
+    create_trip: TripFactory,
+    create_trip_from_second_user: TripFactory,
+    number_of_user_trips: int,
+    number_of_secound_user_trips: int,
+):
+    """
+    Test user trip aggregation endpoint.
+
+    1. Create a number of trips for the one user.
+    2. Create a number of trips for a different user.
+    3. Check if the endpoint returns only the first user's trips.
+    """
+    users_trips = []
+    for _ in range(number_of_user_trips):
+        users_trips.append(create_trip)
+    [create_trip_from_second_user for _ in range(number_of_secound_user_trips)]
+
+    response = await authenticated_ac.get(
+        f"/users/get_user/{authenticated_ac.user.awaitable_attrs.id}/trips"
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert len(response.json()) == number_of_user_trips
+    for trip in users_trips:
+        assert any(response_trip["name"] == trip.name for response_trip in response.json())
