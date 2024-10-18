@@ -11,7 +11,7 @@ class TripDAO(BaseDAO):
     model = Trip
 
     @classmethod
-    async def get_all(cls, db: AsyncSession, limit: int) -> dict:
+    async def get_all_trips(cls, db: AsyncSession, limit: int) -> dict:
         """Get list of trips."""
         query = select(
             Trip.id,

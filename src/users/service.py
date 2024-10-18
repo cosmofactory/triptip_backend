@@ -2,6 +2,8 @@ from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.trips.dao import TripDAO
+from src.trips.schemas import STripOutput
 from src.users.dao import UserDAO
 from src.users.schemas import SUserOutput
 
@@ -26,3 +28,8 @@ class UserService:
         user.userpic = userpic
         user = await UserDAO.update(db, user.id, **user.model_dump(include={"userpic"}))
         return SUserOutput.model_validate(user)
+
+    @staticmethod
+    async def get_user_trips(db: AsyncSession, user_id: int) -> list[STripOutput]:
+        trips = await TripDAO.get_all(db, author_id=user_id)
+        return [STripOutput.model_validate(trip) for trip in trips]

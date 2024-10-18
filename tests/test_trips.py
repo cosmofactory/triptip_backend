@@ -209,3 +209,28 @@ async def test_route_creation(
     assert response.status_code == expected_status
     if expected_status == HTTPStatus.CREATED:
         assert response.json()["name"] == data["name"]
+
+
+async def test_user_trip_agregation(
+    authenticated_ac: AsyncClient,
+    session: AsyncSession,
+    create_trip_from_second_user,
+):
+    """
+    Test user trip aggregation endpoint.
+
+    1. Create a number of trips for the one user.
+    2. Create a trip for a different user.
+    3. Check if the endpoint returns only the first user's trips.
+    """
+    users_trips = []
+    for _ in range(10):
+        trip = await TripFactory.create(
+            db=session, author_id=authenticated_ac.user.awaitable_attrs.id
+        )
+        users_trips.append(trip)
+    response = await authenticated_ac.get(f"/users/{authenticated_ac.user.id}/trips")
+    assert response.status_code == HTTPStatus.OK
+    assert len(response.json()) == 10
+    for trip in users_trips:
+        assert any(response_trip["name"] == trip.name for response_trip in response.json())
