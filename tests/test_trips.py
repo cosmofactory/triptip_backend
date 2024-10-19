@@ -211,10 +211,19 @@ async def test_route_creation(
         assert response.json()["name"] == data["name"]
 
 
+@pytest.mark.parametrize(
+    "number_of_trips",
+    [
+        1,
+        10,
+        0,
+    ],
+)
 async def test_user_trip_agregation(
     authenticated_ac: AsyncClient,
     session: AsyncSession,
     create_trip_from_second_user,
+    number_of_trips,
 ):
     """
     Test user trip aggregation endpoint.
@@ -224,13 +233,14 @@ async def test_user_trip_agregation(
     3. Check if the endpoint returns only the first user's trips.
     """
     users_trips = []
-    for _ in range(10):
-        trip = await TripFactory.create(
-            db=session, author_id=authenticated_ac.user.awaitable_attrs.id
-        )
+    user = await UserFactory.create(db=session)
+    for _ in range(number_of_trips):
+        trip = await TripFactory.create(db=session, author_id=user.id)
         users_trips.append(trip)
-    response = await authenticated_ac.get(f"/users/{authenticated_ac.user.id}/trips")
+    response = await authenticated_ac.get(f"/users/{user.id}/trips")
     assert response.status_code == HTTPStatus.OK
-    assert len(response.json()) == 10
+    result = response.json()
+    assert result["total_count"] == number_of_trips
+    assert len(result["trips"]) == number_of_trips
     for trip in users_trips:
-        assert any(response_trip["name"] == trip.name for response_trip in response.json())
+        assert any(response_trip["name"] == trip.name for response_trip in result["trips"])

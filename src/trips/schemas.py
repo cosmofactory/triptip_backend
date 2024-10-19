@@ -43,6 +43,15 @@ class STripOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class STripListOutput(BaseModel):
+    """Trip list output schema with number of trips."""
+
+    trips: list[STripOutput]
+    total_count: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class STripInput(BaseModel):
     """Create new Trip."""
 
