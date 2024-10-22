@@ -16,7 +16,7 @@ class TripService:
     @staticmethod
     async def get_trips(db: AsyncSession, limit: int) -> list[STripOutput]:
         """Get list of trips."""
-        trips = await TripDAO.get_all(db, limit)
+        trips = await TripDAO.get_all_trips(db, limit)
         return trips
 
     @staticmethod

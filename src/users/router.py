@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
 from src.database.database import SessionDep
+from src.trips.schemas import STripListOutput
 from src.users.schemas import SUserNotFound, SUserOutput
 from src.users.service import UserService
 from src.utils.dependencies import upload_image
@@ -19,7 +20,7 @@ async def get_all_users(db: SessionDep) -> list[SUserOutput]:
     return result
 
 
-@router.get("/get_user/{user_id}", responses={404: {"model": SUserNotFound}})
+@router.get("/{user_id}", responses={404: {"model": SUserNotFound}})
 async def get_user(user_id: int, db: SessionDep) -> SUserOutput:
     """Get user by id."""
     result = await UserService.get_user_by_id(db, user_id=user_id)
@@ -27,7 +28,7 @@ async def get_user(user_id: int, db: SessionDep) -> SUserOutput:
 
 
 @router.get(
-    "/me",
+    "/profile/me",
 )
 async def read_users_me(
     current_user: Annotated[SUserOutput, Depends(get_current_user)],
@@ -37,7 +38,7 @@ async def read_users_me(
 
 
 @router.post(
-    "/me/userpic_upload",
+    "/profile/me/userpic_upload",
     status_code=status.HTTP_201_CREATED,
     responses={status.HTTP_400_BAD_REQUEST: {"model": SErrorResponse}},
 )
@@ -48,3 +49,8 @@ async def userpic_upload(
 ) -> SUserOutput:
     user = await UserService.upload_userpic_to_current_user(db, current_user, userpic)
     return user
+
+
+@router.get("/{user_id}/trips")
+async def get_user_trips(user_id: int, db: SessionDep) -> STripListOutput:
+    return await UserService.get_user_trips(db, user_id)

@@ -44,12 +44,12 @@ class TestUsers:
         """
         Test user detail endpoint.
 
-        Create a user and check if it appears on /users/get_user/{user_id} endpoint.
+        Create a user and check if it appears on /users/{user_id} endpoint.
         Check that nonexistent user returns 404.
         Check that invalid user_id returns 422.
         """
         user = await UserFactory.create(db=session)
-        response = await ac.get(f"/users/get_user/{user_id if user_id else user.id}")
+        response = await ac.get(f"/users/{user_id if user_id else user.id}")
         assert response.status_code == status
         if not user_id:
             assert response.json()["email"] == user.email
@@ -59,9 +59,8 @@ class TestUsers:
         """
         Test user detail endpoint.
 
-        Create a user and check if it appears on /users/me endpoint.
+        Create a user and check if it appears on /users/profile/me endpoint.
         """
-        response = await authenticated_ac.get("/users/me")
-        print(response.json())
+        response = await authenticated_ac.get("/users/profile/me")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["email"] is not None
