@@ -10,14 +10,14 @@ class BaseDAO:
     model = None
 
     @classmethod
-    async def get_all(cls, db: AsyncSession, limit: int = None, **filter_params):
+    async def get_all(cls, db: AsyncSession, limit: int | None = None, **filter_params):
         """
         Get all objects from the table.
 
         Returns mapped dict view.
         If filter_params are provided, filter the objects by the given parameters.
         """
-        query = select(cls.model.__table__.columns).filter_by(**filter_params)
+        query = select(cls.model.__table__.columns).filter_by(**filter_params).limit(limit)
         result = await db.execute(query)
         return result.mappings().all()
 
