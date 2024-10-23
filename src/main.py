@@ -19,9 +19,8 @@ from src.users.router import router as users_router
 app = FastAPI()
 
 logfire.configure(
-    pydantic_plugin=logfire.PydanticPlugin(record="all"),
+    pydantic_plugin=logfire.PydanticPlugin(record="failure"),
     token=settings.LOGFIRE_TOKEN,
-    collect_system_metrics=True,
     inspect_arguments=True,
     service_name=settings.SERVICE_NAME,
 )
