@@ -28,10 +28,11 @@ async def get_user(user_id: int, db: SessionDep) -> SUserOutput:
 
 
 @router.get(
-    "/profile/me",
+    "/profile/{user_id}",
 )
 async def read_users_me(
     current_user: Annotated[SUserOutput, Depends(get_current_user)],
+    user_id: int,
 ) -> SUserOutput:
     """Get current user."""
     return current_user

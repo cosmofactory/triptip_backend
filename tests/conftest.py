@@ -89,3 +89,34 @@ async def authenticated_ac(ac, session):
         assert ac.cookies.get("refresh_token") is not None
         ac.user = user
         yield ac
+
+
+@pytest.fixture(scope="session")
+async def authenticated_ac_2(ac, session):
+    """
+    Create second authenticated AsyncClient instance.
+
+    Add token to headers.
+    Check cookies with tokens.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as ac:
+        password = get_password_hash("async_client_password1")
+        user = await UserDAO.create(
+            session,
+            email="test_2@test.ru",
+            username="LoggedInUser_2",
+            password=password,
+            bio="Some bio 2",
+        )
+        response = await ac.post(
+            "/auth/login",
+            data={"username": "test_2@test.ru", "password": "async_client_password1"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        access_token = response.json()["access_token"]
+        ac.headers.update({"Authorization": f"Bearer {access_token}"})
+        assert response.status_code == HTTPStatus.OK
+        assert ac.cookies.get("access_token") is not None
+        assert ac.cookies.get("refresh_token") is not None
+        ac.user = user
+        yield ac
