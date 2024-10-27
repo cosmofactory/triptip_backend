@@ -172,7 +172,7 @@ class TestTrips:
 async def test_route_creation(
     ac,
     authenticated_ac: AsyncClient,
-    session: AsyncSession,
+    authenticated_ac_2: AsyncClient,
     post_route_data: tuple[dict, int],
     post_route_data_for_others_location: tuple[dict, int],
     user_id,
@@ -192,19 +192,17 @@ async def test_route_creation(
     else:
         data, location = post_route_data_for_others_location
 
-    async def create_route():
+    async def create_route(auth_client: AsyncClient):
         if anonymous:
             response = await ac.post(f"/trips/locations/{location}/route", json=data)
         else:
-            response = await authenticated_ac.post(f"/trips/locations/{location}/route", json=data)
+            response = await auth_client.post(f"/trips/locations/{location}/route", json=data)
         return response
 
     if user_id == "authenticated_user":
-        response = await create_route()
+        response = await create_route(authenticated_ac)
     else:
-        other_user = await UserFactory.create(db=session)
-        authenticated_ac.user = other_user
-        response = await create_route()
+        response = await create_route(authenticated_ac_2)
 
     assert response.status_code == expected_status
     if expected_status == HTTPStatus.CREATED:
