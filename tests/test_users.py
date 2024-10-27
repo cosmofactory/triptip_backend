@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,15 +41,16 @@ class TestUsers:
         assert response.status_code == HTTPStatus.OK
         assert response.json()["email"] == authenticated_ac.user.email
 
-    async def test_user_profile_for_other_user(self, authenticated_ac: AsyncClient, session: AsyncSession):
+    async def test_user_profile_for_other_user(
+        self, authenticated_ac: AsyncClient, session: AsyncSession
+    ):
         """
-        Test user profile endpoint.
+         Test user profile endpoint.
 
-       When accessing this endpoint for another user id,
-         you should see their profile with less data.
+        When accessing this endpoint for another user id,
+          you should see their profile with less data.
         """
         user = await UserFactory.create(db=session)
         response = await authenticated_ac.get(f"/users/profile/{user.id}")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["email"] != authenticated_ac.user.email
-

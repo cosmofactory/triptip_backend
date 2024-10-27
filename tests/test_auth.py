@@ -81,4 +81,3 @@ class TestAuth:
         assert response.json()["refresh_token"] != old_refresh_token
         assert authenticated_ac.cookies.get("access_token") != old_access_token
         assert authenticated_ac.cookies.get("refresh_token") != old_refresh_token
-
