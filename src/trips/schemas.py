@@ -86,6 +86,15 @@ class SlocationOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SRouteInput(BaseModel):
+    """Create new route."""
+
+    name: str
+    description: str
+    origin_id: int
+    destination_id: int
+
+
 class SRouteOutput(BaseModel):
     """Route output schema."""
 
