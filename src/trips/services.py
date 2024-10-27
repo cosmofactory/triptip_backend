@@ -78,7 +78,7 @@ class TripService:
     async def get_highlights(
         db: AsyncSession, highlight_entity: HighlightEnum, entity_id: int
     ) -> SHighlightOutput:
-        """Get highlight information."""
+        """Get list of highlight for route or location."""
         match highlight_entity:
             case HighlightEnum.ROUTE_HIGHLIGHT:
                 highlight = await HighlightDAO.get_object_or_404(db, route_id=entity_id)
