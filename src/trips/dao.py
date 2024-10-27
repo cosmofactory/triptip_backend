@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dao.base import BaseDAO
-from src.trips.models import Location, Route, Trip
+from src.trips.models import Highlight, Location, Route, Trip
 
 
 class TripDAO(BaseDAO):
@@ -49,3 +49,9 @@ class RouteDAO(BaseDAO):
     """Database access object for Route."""
 
     model = Route
+
+
+class HighlightDAO(BaseDAO):
+    """Database access object for Highlight."""
+
+    model = Highlight

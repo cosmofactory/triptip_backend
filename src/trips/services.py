@@ -1,8 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.trips.dao import LocationDAO, RouteDAO, TripDAO
+from src.settings.enums import HighlightEnum
+from src.trips.dao import HighlightDAO, LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import (
     SDetailedTripOutput,
+    SHighlightInput,
+    SHighlightOutput,
     SLocationInput,
     SRouteInput,
     STripInput,
@@ -34,9 +37,7 @@ class TripService:
         return created_trip
 
     @staticmethod
-    async def create_location(
-        db: AsyncSession, trip_id: int, location_data: SLocationInput, user_id: int
-    ):
+    async def create_location(db: AsyncSession, trip_id: int, location_data: SLocationInput):
         """Create a new location."""
         location_data = location_data.model_dump()
         location_data["trip_id"] = trip_id
@@ -62,3 +63,37 @@ class TripService:
         route_data["author_id"] = user_id
         created_route = await RouteDAO.create(db, **route_data)
         return created_route
+
+    @staticmethod
+    async def create_highlight(
+        db: AsyncSession,
+        highlight_data: SHighlightInput,
+        highlight_entity: HighlightEnum,
+        entity_id: int,
+    ):
+        """Create a new highlight."""
+        highlight_data = highlight_data.model_dump()
+        match highlight_entity:
+            case HighlightEnum.ROUTE_HIGHLIGHT:
+                highlight_data["route_id"] = entity_id
+            case HighlightEnum.LOCATION_HIGHLIGHT:
+                highlight_data["location_id"] = entity_id
+            case _:
+                raise ValueError("Invalid highlight entity type")
+        created_highlight = await RouteDAO.create(db, **highlight_data)
+        return created_highlight
+
+    @staticmethod
+    async def get_highlight(
+        db: AsyncSession, highlight_entity: HighlightEnum, entity_id: int
+    ) -> SHighlightOutput:
+        """Get highlight information."""
+        match highlight_entity:
+            case HighlightEnum.ROUTE_HIGHLIGHT:
+                highlight = await HighlightDAO.get_object_or_404(db, route_id=entity_id)
+            case HighlightEnum.LOCATION_HIGHLIGHT:
+                highlight = await HighlightDAO.get_object_or_404(db, location_id=entity_id)
+            case _:
+                raise ValueError("Invalid highlight entity type")
+
+        return highlight

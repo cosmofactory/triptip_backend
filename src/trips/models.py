@@ -1,7 +1,7 @@
 from datetime import date
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import TimeStampModel
@@ -66,6 +66,7 @@ class Location(TimeStampModel):
     inbound_route: Mapped["Route"] = relationship(
         "Route", back_populates="destination", foreign_keys="[Route.destination_id]"
     )
+    highlights = relationship("Highlights", back_populates="location")
 
     __table_args__ = (UniqueConstraint("trip_id", "name", name="_trip_name_uc"),)
 
@@ -89,7 +90,7 @@ class Route(TimeStampModel):
     destination_id - location id where route ends.
     """
 
-    __tablename__ = "routes"
+    __tablename__ = "routees"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
@@ -109,9 +110,46 @@ class Route(TimeStampModel):
         back_populates="inbound_route",
         foreign_keys="[Route.destination_id]",
     )
+    highlights = relationship("Highlights", back_populates="route")
 
     def __repr__(self) -> str:
         return f"Route(id={self.id!r}, name={self.name!r})"
 
     def __str__(self) -> str:
         return f"Route(id={self.id}, name={self.name})"
+
+
+class Highlight(TimeStampModel):
+    """
+    Highlight model.
+    """
+
+    __tablename__ = "highlights"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    description: Mapped[Optional[str]]
+    route_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("routes.id", ondelete="CASCADE"), nullable=True
+    )
+    location_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("locations.id", ondelete="CASCADE"), nullable=True
+    )
+
+    route: Mapped["Route"] = relationship("Route", back_populates="route", lazy="joined")
+    location: Mapped["Location"] = relationship(
+        "Location", back_populates="locations", lazy="joined"
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "(route_id IS NOT NULL AND location_id IS NULL) OR (route_id IS NULL AND location_id IS NOT NULL)",
+            name="only_one_parent",
+        ),
+    )
+
+    def __repr__(self) -> str:
+        return f"Highlights(id={self.id!r}, name={self.name!r})"
+
+    def __str__(self) -> str:
+        return f"Highlights(id={self.id}, name={self.name})"

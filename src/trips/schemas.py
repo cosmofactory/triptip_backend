@@ -104,3 +104,21 @@ class SRouteOutput(BaseModel):
     destination_id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SHighlightInput(BaseModel):
+    """Create new highlight."""
+
+    name: str
+    description: str
+    route_id: int | None
+    location_id: int | None
+
+
+class SHighlightOutput(BaseModel):
+    """Highlight output schema."""
+
+    name: str
+    description: str
+    route_id: int | None
+    location_id: int | None
