@@ -90,7 +90,7 @@ class Route(TimeStampModel):
     destination_id - location id where route ends.
     """
 
-    __tablename__ = "routees"
+    __tablename__ = "routes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]

@@ -68,23 +68,14 @@ class TripService:
     async def create_highlight(
         db: AsyncSession,
         highlight_data: SHighlightInput,
-        highlight_entity: HighlightEnum,
-        entity_id: int,
     ):
         """Create a new highlight."""
         highlight_data = highlight_data.model_dump()
-        match highlight_entity:
-            case HighlightEnum.ROUTE_HIGHLIGHT:
-                highlight_data["route_id"] = entity_id
-            case HighlightEnum.LOCATION_HIGHLIGHT:
-                highlight_data["location_id"] = entity_id
-            case _:
-                raise ValueError("Invalid highlight entity type")
         created_highlight = await RouteDAO.create(db, **highlight_data)
         return created_highlight
 
     @staticmethod
-    async def get_highlight(
+    async def get_highlights(
         db: AsyncSession, highlight_entity: HighlightEnum, entity_id: int
     ) -> SHighlightOutput:
         """Get highlight information."""
@@ -95,5 +86,12 @@ class TripService:
                 highlight = await HighlightDAO.get_object_or_404(db, location_id=entity_id)
             case _:
                 raise ValueError("Invalid highlight entity type")
+
+        return highlight
+
+    @staticmethod
+    async def get_highlight(db: AsyncSession, highlight_id: int) -> SHighlightOutput:
+        """Get highlight information."""
+        highlight = await HighlightDAO.get_object_or_404(db, id=highlight_id)
 
         return highlight
