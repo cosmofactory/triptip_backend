@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -104,3 +105,34 @@ class SRouteOutput(BaseModel):
     destination_id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SHighlightInput(BaseModel):
+    """Create new highlight."""
+
+    name: str
+    description: str
+    route_id: int | None
+    location_id: int | None
+
+    @classmethod
+    def check_one_parent_present(cls, data: Any):
+        route_id, location_id = data.get("route_id"), data.get("location_id")
+        if any(
+            [
+                route_id is None and location_id is None,
+                route_id is not None and location_id is not None,
+            ]
+        ):
+            raise ValueError("Either route_id or location_id must be set, but not both.")
+        return data
+
+
+class SHighlightOutput(BaseModel):
+    """Highlight output schema."""
+
+    id: int
+    name: str
+    description: str
+    route_id: int | None
+    location_id: int | None

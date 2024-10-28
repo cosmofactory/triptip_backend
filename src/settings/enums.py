@@ -259,3 +259,8 @@ class RegionEnum(enum.Enum):
     ZAMBIA = "Zambia"
     ZIMBABWE = "Zimbabwe"
     ALAND_ISLANDS = "Aland Islands"
+
+
+class HighlightEnum(enum.Enum):
+    ROUTE_HIGHLIGHT = "route highlight"
+    LOCATION_HIGHLIGHT = "location highlight"

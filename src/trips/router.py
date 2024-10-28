@@ -67,7 +67,7 @@ async def create_location(
     """
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(trip_id, TripDAO, user)
-    created_location = await TripService.create_location(db, trip_id, location, user.id)
+    created_location = await TripService.create_location(db, trip_id, location)
     return created_location
 
 
