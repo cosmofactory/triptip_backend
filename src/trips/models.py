@@ -66,7 +66,7 @@ class Location(TimeStampModel):
     inbound_route: Mapped["Route"] = relationship(
         "Route", back_populates="destination", foreign_keys="[Route.destination_id]"
     )
-    highlights = relationship("Highlights", back_populates="location")
+    highlights: Mapped["Highlight"] = relationship("Highlight", back_populates="location")
 
     __table_args__ = (UniqueConstraint("trip_id", "name", name="_trip_name_uc"),)
 
@@ -110,7 +110,7 @@ class Route(TimeStampModel):
         back_populates="inbound_route",
         foreign_keys="[Route.destination_id]",
     )
-    highlights = relationship("Highlights", back_populates="route")
+    highlights: Mapped["Highlight"] = relationship("Highlight", back_populates="route")
 
     def __repr__(self) -> str:
         return f"Route(id={self.id!r}, name={self.name!r})"
@@ -136,9 +136,9 @@ class Highlight(TimeStampModel):
         ForeignKey("locations.id", ondelete="CASCADE"), nullable=True
     )
 
-    route: Mapped["Route"] = relationship("Route", back_populates="route", lazy="joined")
+    route: Mapped["Route"] = relationship("Route", back_populates="highlights", lazy="joined")
     location: Mapped["Location"] = relationship(
-        "Location", back_populates="locations", lazy="joined"
+        "Location", back_populates="highlights", lazy="joined"
     )
 
     __table_args__ = (
