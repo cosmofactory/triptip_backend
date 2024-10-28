@@ -71,7 +71,7 @@ class TripService:
     ):
         """Create a new highlight."""
         highlight_data = highlight_data.model_dump()
-        created_highlight = await RouteDAO.create(db, **highlight_data)
+        created_highlight = await HighlightDAO.create(db, **highlight_data)
         return created_highlight
 
     @staticmethod
