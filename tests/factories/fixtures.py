@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.settings.config import settings
 from tests.factories.aws_config import mock_aio_aws
 from tests.factories.trips_factories import (
+    HighlightFactory,
     LocationFactory,
     RouteCreationFactory,
     RouteFactory,
@@ -103,3 +104,17 @@ def mock_aws(monkeypatch):
     """This fixture is needed for async compatibility of aioboto with moto."""
     with mock_aio_aws(monkeypatch):
         yield
+
+
+@pytest.fixture(scope="function")
+async def create_location_highlight(session: AsyncSession, create_location: LocationFactory):
+    location = create_location
+    highlight = await HighlightFactory.create(db=session, location_id=location.id)
+    return highlight, location
+
+
+@pytest.fixture(scope="function")
+async def create_route_highlight(session: AsyncSession, create_route: RouteFactory):
+    route = create_route
+    highlight = await HighlightFactory.create(db=session, route_id=route.id)
+    return highlight

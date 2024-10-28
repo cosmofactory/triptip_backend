@@ -8,7 +8,7 @@ import factory.fuzzy
 from pydantic import BaseModel
 
 from src.settings.enums import RegionEnum
-from src.trips.dao import LocationDAO, RouteDAO, TripDAO
+from src.trips.dao import HighlightDAO, LocationDAO, RouteDAO, TripDAO
 from tests.factories.base_factory import AsyncFactory
 
 
@@ -73,3 +73,20 @@ class RouteCreationFactory(BaseModel):
     description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
     origin_id: int = None
     destination_id: int = None
+
+
+class HighlightCreationFactory(BaseModel):
+    name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    route_id: int = None
+    location_id: int = None
+
+
+class HighlightFactory(AsyncFactory):
+    class Meta:
+        model = HighlightDAO
+
+    name = factory.fuzzy.FuzzyText(length=10)
+    description = factory.fuzzy.FuzzyText(length=100)
+    route_id: int = None
+    location_id: int = None

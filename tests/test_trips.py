@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
+    HighlightFactory,
     LocationCreationFactory,
     LocationFactory,
     RouteFactory,
@@ -242,3 +243,53 @@ async def test_user_trip_agregation(
     assert len(result["trips"]) == number_of_trips
     for trip in users_trips:
         assert any(response_trip["name"] == trip.name for response_trip in result["trips"])
+
+
+class TestHighlights:
+    async def test_get_route_highlights(
+        self, authenticated_ac: AsyncClient, session: AsyncSession, create_route: RouteFactory
+    ):
+        """
+        Test get highlights for route endpoint.
+
+        Create a route, add some highlights to it,
+        and check if the get highlights for route endpoint returns them.
+        """
+        route = create_route
+        for _ in range(3):
+            await HighlightFactory.create(db=session, route_id=route.id)
+        response = await authenticated_ac.get(f"/trips/route/{route.id}/highlights")
+        assert response.status_code == HTTPStatus.OK
+        assert len(response.json()) == 3
+
+    async def test_get_location_highlights(
+        self, authenticated_ac: AsyncClient, session: AsyncSession, create_location: LocationFactory
+    ):
+        """
+        Test get highlights for location endpoint.
+
+        Create a location, add some highlights to it,
+        and check if the get highlights for location endpoint returns them.
+        """
+        location = create_location
+        for _ in range(3):
+            await HighlightFactory.create(db=session, location_id=location.id)
+        response = await authenticated_ac.get(f"/trips/location/{location.id}/highlights")
+        assert response.status_code == HTTPStatus.OK
+        assert len(response.json()) == 3
+
+    async def test_get_highlight(
+        self,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+        create_location_highlight: HighlightFactory,
+    ):
+        """
+        Test get highlight endpoint.
+
+        Create a highlight and check if the get highlight endpoint returns it.
+        """
+        highlight, location = create_location_highlight
+        response = await authenticated_ac.get(f"/trips/highlight/{highlight.id}")
+        assert response.status_code == HTTPStatus.OK
+        assert response.json()["location_id"] == location.id
