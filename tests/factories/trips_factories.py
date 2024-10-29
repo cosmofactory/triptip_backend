@@ -88,5 +88,3 @@ class HighlightFactory(AsyncFactory):
 
     name = factory.fuzzy.FuzzyText(length=10)
     description = factory.fuzzy.FuzzyText(length=100)
-    route_id: int = None
-    location_id: int = None

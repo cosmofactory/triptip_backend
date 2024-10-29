@@ -132,7 +132,9 @@ async def create_highlight_for_route(
     """
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(route_id, RouteDAO, user)
-    highlight = await TripService.create_highlight(db, highlight)
+    highlight = await TripService.create_highlight(
+        db, highlight, HighlightEnum.ROUTE_HIGHLIGHT, route_id
+    )
     return highlight
 
 
@@ -151,7 +153,9 @@ async def create_highlight_for_location(
     """
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(location_id, LocationDAO, user)
-    highlight = await TripService.create_highlight(db, highlight)
+    highlight = await TripService.create_highlight(
+        db, highlight, HighlightEnum.LOCATION_HIGHLIGHT, location_id
+    )
     return highlight
 
 
