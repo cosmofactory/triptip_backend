@@ -4,9 +4,12 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
 from src.database.database import SessionDep
-from src.trips.dao import LocationDAO, TripDAO
+from src.settings.enums import HighlightEnum
+from src.trips.dao import LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import (
     SDetailedTripOutput,
+    SHighlightInput,
+    SHighlightOutput,
     SLocationInput,
     SlocationOutput,
     SObjectAlreadyExists,
@@ -112,3 +115,75 @@ async def create_route(
     await permissions.is_author_or_read_only(location_id, LocationDAO, user)
     route = await TripService.create_route(db, trip, user.id)
     return route
+
+
+@router.post("/route/{route_id}/highlight", status_code=status.HTTP_201_CREATED)
+async def create_highlight_for_route(
+    route_id: int,
+    highlight: SHighlightInput,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> SRouteOutput:
+    """
+    Create a new highlight for route.
+
+    Route ID is the origin of the route.
+    Only route author can create a highlight.
+    """
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(route_id, RouteDAO, user)
+    highlight = await TripService.create_highlight(
+        db, highlight, HighlightEnum.ROUTE_HIGHLIGHT, route_id
+    )
+    return highlight
+
+
+@router.post("/location/{location_id}/highlight", status_code=status.HTTP_201_CREATED)
+async def create_highlight_for_location(
+    location_id: int,
+    highlight: SHighlightInput,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> SRouteOutput:
+    """
+    Create a new highlight for location.
+
+    Location ID is the origin of the location.
+    Only route author can create a highlight.
+    """
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(location_id, LocationDAO, user)
+    highlight = await TripService.create_highlight(
+        db, highlight, HighlightEnum.LOCATION_HIGHLIGHT, location_id
+    )
+    return highlight
+
+
+@router.get("/route/{route_id}/highlights", response_model=list[SHighlightOutput])
+async def get_route_highlights(
+    route_id: int,
+    db: SessionDep,
+) -> list[SHighlightOutput]:
+    """Get all highlights for a route."""
+    highlights = await TripService.get_highlights(db, HighlightEnum.ROUTE_HIGHLIGHT, route_id)
+    return highlights
+
+
+@router.get("/location/{location_id}/highlights", response_model=list[SHighlightOutput])
+async def get_location_highlights(
+    location_id: int,
+    db: SessionDep,
+) -> list[SHighlightOutput]:
+    """Get all highlights for a location."""
+    highlights = await TripService.get_highlights(db, HighlightEnum.LOCATION_HIGHLIGHT, location_id)
+    return highlights
+
+
+@router.get("/highlight/{highlight_id}", response_model=SHighlightOutput)
+async def get_highlight(
+    highlight_id: int,
+    db: SessionDep,
+) -> SHighlightOutput:
+    """Get highlight"""
+    highlights = await TripService.get_highlight(db, highlight_id)
+    return highlights
