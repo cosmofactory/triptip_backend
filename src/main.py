@@ -23,6 +23,7 @@ logfire.configure(
     token=settings.LOGFIRE_TOKEN,
     inspect_arguments=True,
     service_name=settings.SERVICE_NAME,
+    metrics=False,
 )
 logfire.instrument_fastapi(app)
 logfire.instrument_asyncpg()
