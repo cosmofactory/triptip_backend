@@ -1,3 +1,4 @@
+import logfire
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,7 @@ class TripDAO(BaseDAO):
     model = Trip
 
     @classmethod
+    @logfire.instrument()
     async def get_all_trips(cls, db: AsyncSession, limit: int) -> dict:
         """Get list of trips."""
         query = select(

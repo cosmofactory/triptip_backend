@@ -6,6 +6,8 @@ class SUserInput(BaseModel):
 
     email: str
     password: str
+    first_name: str | None
+    last_name: str | None
     userpic: str | None
     bio: str | None
 
@@ -18,6 +20,8 @@ class SUserOutput(BaseModel):
     id: int
     email: str
     username: str
+    first_name: str | None
+    last_name: str | None
     userpic: str | None
     bio: str | None
     is_admin: bool

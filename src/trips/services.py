@@ -1,3 +1,4 @@
+import logfire
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.settings.enums import HighlightEnum
@@ -17,6 +18,7 @@ class TripService:
     """Service layer for Trip."""
 
     @staticmethod
+    @logfire.instrument()
     async def get_trips(db: AsyncSession, limit: int) -> list[STripOutput]:
         """Get list of trips."""
         trips = await TripDAO.get_all_trips(db, limit)

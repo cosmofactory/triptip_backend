@@ -26,7 +26,6 @@ logfire.configure(
     metrics=False,
 )
 logfire.instrument_fastapi(app)
-logfire.instrument_asyncpg()
 
 
 app.include_router(users_router)
