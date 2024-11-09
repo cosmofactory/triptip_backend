@@ -17,6 +17,7 @@ from src.trips.schemas import (
     SRouteOutput,
     STripInput,
     STripOutput,
+    STripUserOutput,
 )
 from src.trips.services import TripService
 from src.users.schemas import SUserOutput
@@ -25,8 +26,8 @@ from src.utils.dependencies import Permissions
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
 
-@router.get("", response_model=list[STripOutput])
-async def get_trips(db: SessionDep, limit: int = 50) -> list[STripOutput]:
+@router.get("", response_model=list[STripUserOutput])
+async def get_trips(db: SessionDep, limit: int = 50) -> list[STripUserOutput]:
     """Get all trips."""
     trips = await TripService.get_trips(db, limit)
     return trips

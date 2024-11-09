@@ -1,20 +1,20 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
+from src.dao.schema import OrmBase
 from src.settings.enums import RegionEnum
+from src.users.schemas import SShortUserInfo
 
 
-class STripLocationOutput(BaseModel):
+class STripLocationOutput(OrmBase):
     """Location output schema."""
 
     id: int
     name: str
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class SDetailedTripOutput(BaseModel):
+class SDetailedTripOutput(OrmBase):
     """Detailed Trip output schema."""
 
     id: int
@@ -26,10 +26,8 @@ class SDetailedTripOutput(BaseModel):
     author_id: int
     locations: list[STripLocationOutput]
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class STripOutput(BaseModel):
+class STripOutput(OrmBase):
     """Trip list output schema."""
 
     id: int
@@ -40,19 +38,27 @@ class STripOutput(BaseModel):
     date_to: date
     author_id: int
 
-    model_config = ConfigDict(from_attributes=True)
+
+class STripUserOutput(OrmBase):
+    """Trip list output schema."""
+
+    id: int
+    name: str
+    description: str
+    region: RegionEnum
+    date_from: date
+    date_to: date
+    author: SShortUserInfo
 
 
-class STripListOutput(BaseModel):
+class STripListOutput(OrmBase):
     """Trip list output schema with number of trips."""
 
     trips: list[STripOutput]
     total_count: int
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class STripInput(BaseModel):
+class STripInput(OrmBase):
     """Create new Trip."""
 
     name: str
@@ -68,24 +74,22 @@ class SObjectAlreadyExists(BaseModel):
     detail: str = "Object already exists"
 
 
-class SLocationInput(BaseModel):
+class SLocationInput(OrmBase):
     """Create new Location."""
 
     name: str
     description: str
 
 
-class SlocationOutput(BaseModel):
+class SlocationOutput(OrmBase):
     """Location output schema."""
 
     id: int
     name: str
     description: str
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class SRouteInput(BaseModel):
+class SRouteInput(OrmBase):
     """Create new route."""
 
     name: str
@@ -94,7 +98,7 @@ class SRouteInput(BaseModel):
     destination_id: int
 
 
-class SRouteOutput(BaseModel):
+class SRouteOutput(OrmBase):
     """Route output schema."""
 
     id: int
@@ -103,17 +107,15 @@ class SRouteOutput(BaseModel):
     origin_id: int
     destination_id: int
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class SHighlightInput(BaseModel):
+class SHighlightInput(OrmBase):
     """Create new highlight."""
 
     name: str
     description: str
 
 
-class SHighlightOutput(BaseModel):
+class SHighlightOutput(OrmBase):
     """Highlight output schema."""
 
     id: int

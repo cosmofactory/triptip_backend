@@ -54,6 +54,7 @@ class TestTrips:
         Test trips list endpoint.
 
         Create 10 trips and check if they appear on /trips endpoint.
+        Verify nested author fields.
         """
         trips = []
         for _ in range(10):
@@ -63,6 +64,9 @@ class TestTrips:
         assert response.status_code == HTTPStatus.OK
         for trip in trips:
             assert any(response_trip["name"] == trip for response_trip in response.json())
+        for trip in response.json():
+            assert trip["author"]["id"] is not None
+            assert isinstance(trip["author"]["id"], int)
 
     async def test_trip_detail(
         self, ac: AsyncClient, session: AsyncSession, create_trip: TripFactory
