@@ -23,7 +23,7 @@ test:
 # Alembic block:
 # To create a new migration, run the following command:
 makemigrations:
-	poetry run alembic revision --autogenerate -m `date +%Y%m%d%H%M%S`
+	poetry run alembic revision --autogenerate
 # To apply the migration, run the following command:
 migrate:
 	poetry run alembic upgrade head

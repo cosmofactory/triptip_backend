@@ -12,5 +12,7 @@ class UserFactory(AsyncFactory):
     email = factory.Sequence(lambda n: f"user{n + 1}@triptip.pro")
     username = factory.fuzzy.FuzzyText(length=10)
     password = factory.fuzzy.FuzzyText(length=10)
+    first_name = factory.fuzzy.FuzzyText(length=10)
+    last_name = factory.fuzzy.FuzzyText(length=10)
     bio = factory.fuzzy.FuzzyText(length=100)
     userpic = factory.Sequence(lambda n: f"/media/userpics/user{n + 1}.png")

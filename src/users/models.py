@@ -20,6 +20,8 @@ class User(TimeStampModel):
     email: Mapped[EmailStr] = mapped_column(String(256), unique=True)
     username: Mapped[str] = mapped_column(String(256), unique=True)
     password: Mapped[str]
+    first_name: Mapped[str | None]
+    last_name: Mapped[str | None]
     userpic: Mapped[str | None]
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_admin: Mapped[bool] = mapped_column(default=False)

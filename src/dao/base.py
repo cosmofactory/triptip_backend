@@ -1,3 +1,4 @@
+import logfire
 from fastapi import HTTPException, status
 from sqlalchemy import insert, select, update
 from sqlalchemy.exc import IntegrityError
@@ -10,6 +11,7 @@ class BaseDAO:
     model = None
 
     @classmethod
+    @logfire.instrument()
     async def get_all(cls, db: AsyncSession, limit: int | None = None, **filter_params):
         """
         Get all objects from the table.
