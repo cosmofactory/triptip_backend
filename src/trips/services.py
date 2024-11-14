@@ -1,3 +1,4 @@
+import logfire
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.settings.enums import HighlightEnum
@@ -18,18 +19,21 @@ class TripService:
     """Service layer for Trip."""
 
     @staticmethod
+    @logfire.instrument()
     async def get_trips(db: AsyncSession, limit: int) -> list[STripUserOutput]:
         """Get list of trips with nested author fields."""
         trips = await TripDAO.get_all_trips(db, limit)
         return [STripUserOutput.model_validate(trip) for trip in trips]
 
     @staticmethod
+    @logfire.instrument()
     async def get_trip(db: AsyncSession, trip_id: int) -> SDetailedTripOutput:
         """Get detailed trip information."""
         trip = await TripDAO.get_object_or_404(db, id=trip_id)
         return trip
 
     @staticmethod
+    @logfire.instrument()
     async def create_trip(db: AsyncSession, trip_data: STripInput, user_id: int) -> STripOutput:
         """Create a new trip."""
         trip_data = trip_data.model_dump()
@@ -38,6 +42,7 @@ class TripService:
         return created_trip
 
     @staticmethod
+    @logfire.instrument()
     async def create_location(db: AsyncSession, trip_id: int, location_data: SLocationInput):
         """Create a new location."""
         location_data = location_data.model_dump()
@@ -46,18 +51,21 @@ class TripService:
         return created_location
 
     @staticmethod
+    @logfire.instrument()
     async def get_locations(db: AsyncSession, trip_id: int):
         """Get list of locations for a trip."""
         locations = await LocationDAO.get_all(db, trip_id=trip_id)
         return locations
 
     @staticmethod
+    @logfire.instrument()
     async def get_route(db: AsyncSession, location_id: int):
         """Get route between two locations."""
         route = await RouteDAO.get_object_or_404(db, origin_id=location_id)
         return route
 
     @staticmethod
+    @logfire.instrument()
     async def create_route(db: AsyncSession, route_data: SRouteInput, user_id: int):
         """Create a new route."""
         route_data = route_data.model_dump()
@@ -66,6 +74,7 @@ class TripService:
         return created_route
 
     @staticmethod
+    @logfire.instrument()
     async def create_highlight(
         db: AsyncSession,
         highlight_data: SHighlightInput,
@@ -86,6 +95,7 @@ class TripService:
         return created_highlight
 
     @staticmethod
+    @logfire.instrument()
     async def get_highlights(
         db: AsyncSession, highlight_entity: HighlightEnum, entity_id: int
     ) -> list[SHighlightOutput]:
@@ -101,6 +111,7 @@ class TripService:
         return highlight
 
     @staticmethod
+    @logfire.instrument()
     async def get_highlight(db: AsyncSession, highlight_id: int) -> SHighlightOutput:
         """Get highlight information."""
         highlight = await HighlightDAO.get_object_or_404(db, id=highlight_id)
