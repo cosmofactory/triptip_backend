@@ -1,6 +1,7 @@
 import logfire
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from src.dao.base import BaseDAO
 from src.trips.models import Highlight, Location, Route, Trip
@@ -12,20 +13,11 @@ class TripDAO(BaseDAO):
     model = Trip
 
     @classmethod
-    @logfire.instrument()
-    async def get_all_trips(cls, db: AsyncSession, limit: int) -> dict:
-        """Get list of trips."""
-        query = select(
-            Trip.id,
-            Trip.name,
-            Trip.description,
-            Trip.region,
-            Trip.date_from,
-            Trip.date_to,
-            Trip.author_id,
-        ).limit(limit)
+    async def get_all_trips(cls, db: AsyncSession, limit: int) -> list[Trip]:
+        """Get list of trips joined with authors."""
+        query = select(Trip).options(joinedload(Trip.author)).limit(limit)
         result = await db.execute(query)
-        return result.mappings().all()
+        return result.unique().scalars().all()
 
     @classmethod
     async def get_all_and_count(cls, db: AsyncSession, **filter_params):

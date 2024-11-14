@@ -11,6 +11,7 @@ from src.trips.schemas import (
     SRouteInput,
     STripInput,
     STripOutput,
+    STripUserOutput,
 )
 
 
@@ -18,11 +19,10 @@ class TripService:
     """Service layer for Trip."""
 
     @staticmethod
-    @logfire.instrument()
-    async def get_trips(db: AsyncSession, limit: int) -> list[STripOutput]:
-        """Get list of trips."""
+    async def get_trips(db: AsyncSession, limit: int) -> list[STripUserOutput]:
+        """Get list of trips with nested author fields."""
         trips = await TripDAO.get_all_trips(db, limit)
-        return trips
+        return [STripUserOutput.model_validate(trip) for trip in trips]
 
     @staticmethod
     async def get_trip(db: AsyncSession, trip_id: int) -> SDetailedTripOutput:

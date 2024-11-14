@@ -1,7 +1,7 @@
-from pydantic import BaseModel, ConfigDict
+from src.dao.schema import OrmBase
 
 
-class SUserInput(BaseModel):
+class SUserInput(OrmBase):
     """Schema for User input data."""
 
     email: str
@@ -11,10 +11,8 @@ class SUserInput(BaseModel):
     userpic: str | None
     bio: str | None
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class SUserOutput(BaseModel):
+class SUserOutput(OrmBase):
     """Schema for User output data."""
 
     id: int
@@ -26,12 +24,17 @@ class SUserOutput(BaseModel):
     bio: str | None
     is_admin: bool
 
-    model_config = ConfigDict(from_attributes=True)
+
+class SShortUserInfo(OrmBase):
+    """Schema for User output data."""
+
+    id: int
+    email: str
+    username: str
+    userpic: str | None
 
 
-class SUserNotFound(BaseModel):
+class SUserNotFound(OrmBase):
     """Schema for User not found response."""
 
     detail: str
-
-    model_config = ConfigDict(from_attributes=True)
