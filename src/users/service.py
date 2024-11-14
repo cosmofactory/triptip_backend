@@ -1,5 +1,6 @@
 from typing import List
 
+import logfire
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.trips.dao import TripDAO
@@ -11,6 +12,7 @@ from src.users.schemas import SUserOutput
 class UserService:
     """Service layer for users module."""
 
+    @logfire.instrument()
     @staticmethod
     async def get_all_users(db: AsyncSession) -> List[SUserOutput]:
         """Return all users from the database."""

@@ -28,7 +28,14 @@ class TestAuth:
         2. Check that user with the same email cannot be registered.
         3. Check that invalid email returns 422.
         """
-        user_data = {"email": email, "username": username, "password": "qwerty1", "bio": "Some bio"}
+        user_data = {
+            "email": email,
+            "username": username,
+            "password": "qwerty1",
+            "bio": "Some bio",
+            "first_name": "Test",
+            "last_name": "User",
+        }
 
         response = await ac.post(
             "/auth/register",
