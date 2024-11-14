@@ -1,4 +1,3 @@
-import logfire
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.settings.enums import HighlightEnum
