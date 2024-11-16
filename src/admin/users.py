@@ -30,6 +30,7 @@ class UserAdmin(get_sqladmin_mixin(User), ModelView, model=User):
     }
     column_labels = {User.password: "hashed password"}
     column_details_excluide_list = [User.password]
+    form_excluded_columns = [User.routes, User.trips, User.refresh_tokens]
 
     name = "User"
     name_plural = "Users"
