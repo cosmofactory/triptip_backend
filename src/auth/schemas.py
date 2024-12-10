@@ -7,8 +7,8 @@ class SUserRegister(BaseModel):
     email: EmailStr
     password: str
     username: str
-    first_name: str | None
-    last_name: str
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 class SUserLogin(BaseModel):
