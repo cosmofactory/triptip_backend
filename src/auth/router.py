@@ -64,7 +64,7 @@ async def login(
         )
     tokens = await create_tokens(db, user)
     await set_cookies(response, tokens["access_token"], tokens["refresh_token"])
-    return Token(**tokens)
+    return Token(**tokens, user_data=user)
 
 
 @router.post(
@@ -94,7 +94,7 @@ async def refresh(request: Request, response: Response, db: SessionDep) -> Token
         user = await AuthDAO.get_one_or_none(db, email=email)
         new_tokens = await create_tokens(db, user)
         await set_cookies(response, new_tokens.get("access_token"), new_tokens.get("refresh_token"))
-        return Token(**new_tokens)
+        return Token(**new_tokens, user_data=user)
     else:
         raise wrong_credentials
 
