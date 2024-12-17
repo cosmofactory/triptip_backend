@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr
 
+from src.users.schemas import SUserOutput
+
 
 class SUserRegister(BaseModel):
     """User registration schema."""
@@ -37,3 +39,4 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str | None
     token_type: str
+    user_data: SUserOutput
