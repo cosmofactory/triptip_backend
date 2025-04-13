@@ -214,6 +214,25 @@ async def test_route_creation(
         assert response.json()["name"] == data["name"]
 
 
+async def test_route_creation_no_destination(
+    authenticated_ac: AsyncClient,
+    post_route_data_no_destination: tuple[dict, int],
+):
+    """
+    Test route creation endpoint withoud destination.
+    """
+    data, location = post_route_data_no_destination
+
+    async def create_route(auth_client: AsyncClient):
+        response = await authenticated_ac.post(f"/trips/locations/{location}/route", json=data)
+        return response
+
+    response = await create_route(authenticated_ac)
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json()["name"] == data["name"]
+
+
 @pytest.mark.parametrize(
     "number_of_trips",
     [

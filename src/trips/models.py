@@ -96,7 +96,9 @@ class Route(TimeStampModel):
     name: Mapped[str]
     description: Mapped[Optional[str]]
     origin_id: Mapped[int] = mapped_column(ForeignKey("locations.id", ondelete="CASCADE"))
-    destination_id: Mapped[int] = mapped_column(ForeignKey("locations.id", ondelete="CASCADE"))
+    destination_id: Mapped[int | None] = mapped_column(
+        ForeignKey("locations.id", ondelete="CASCADE"), nullable=True
+    )
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     author: Mapped["User"] = relationship("User", back_populates="routes")

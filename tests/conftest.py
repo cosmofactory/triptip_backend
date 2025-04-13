@@ -23,6 +23,7 @@ from tests.factories.fixtures import (  # noqa: F401
     mock_s3_bucket,
     post_route_data,
     post_route_data_for_others_location,
+    post_route_data_no_destination,
 )
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
