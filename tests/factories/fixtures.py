@@ -68,6 +68,14 @@ async def post_route_data(create_location: LocationFactory) -> tuple[dict, int]:
 
 
 @pytest.fixture(scope="function")
+async def post_route_data_no_destination(create_location: LocationFactory) -> tuple[dict, int]:
+    origin = create_location
+    data = RouteCreationFactory(origin_id=origin.id)
+    data = data.model_dump()
+    return data, origin.id
+
+
+@pytest.fixture(scope="function")
 async def post_route_data_for_others_location(
     create_location_from_second_user: LocationFactory,
 ) -> tuple[dict, int]:

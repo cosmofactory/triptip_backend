@@ -95,7 +95,7 @@ class SRouteInput(OrmBase):
     name: str
     description: str
     origin_id: int
-    destination_id: int
+    destination_id: int | None
 
 
 class SRouteOutput(OrmBase):
@@ -105,7 +105,7 @@ class SRouteOutput(OrmBase):
     name: str
     description: str
     origin_id: int
-    destination_id: int
+    destination_id: int | None
 
 
 class SHighlightInput(OrmBase):

@@ -71,8 +71,8 @@ class RouteFactory(AsyncFactory):
 class RouteCreationFactory(BaseModel):
     name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
     description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
-    origin_id: int = None
-    destination_id: int = None
+    origin_id: int | None = None
+    destination_id: int | None = None
 
 
 class HighlightCreationFactory(BaseModel):
