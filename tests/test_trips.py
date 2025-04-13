@@ -211,7 +211,7 @@ async def test_route_creation(
 
     assert response.status_code == expected_status
     if expected_status == HTTPStatus.CREATED:
-        assert response.json()["name"] == data["name"]
+        assert response.json()["description"] == data["description"]
 
 
 async def test_route_creation_no_destination(
@@ -230,7 +230,7 @@ async def test_route_creation_no_destination(
     response = await create_route(authenticated_ac)
 
     assert response.status_code == HTTPStatus.CREATED
-    assert response.json()["name"] == data["name"]
+    assert response.json()["description"] == data["description"]
 
 
 @pytest.mark.parametrize(
