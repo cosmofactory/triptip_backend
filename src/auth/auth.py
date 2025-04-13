@@ -105,7 +105,7 @@ async def set_cookies(response: Response, access_token: str, refresh_token: str)
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
+        secure=True,
         samesite="Lax",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS,
     )
