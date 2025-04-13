@@ -219,7 +219,7 @@ async def test_route_creation_no_destination(
     post_route_data_no_destination: tuple[dict, int],
 ):
     """
-    Test route creation endpoint withoud destination.
+    Test route creation endpoint without destination.
     """
     data, location = post_route_data_no_destination
 
