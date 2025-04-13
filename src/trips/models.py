@@ -93,7 +93,6 @@ class Route(TimeStampModel):
     __tablename__ = "routes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
     description: Mapped[Optional[str]]
     origin_id: Mapped[int] = mapped_column(ForeignKey("locations.id", ondelete="CASCADE"))
     destination_id: Mapped[int | None] = mapped_column(

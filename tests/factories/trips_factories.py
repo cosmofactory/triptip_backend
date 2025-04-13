@@ -64,12 +64,10 @@ class RouteFactory(AsyncFactory):
 
     origin_id = None
     destination_id = None
-    name = factory.fuzzy.FuzzyText(length=10)
     description = factory.fuzzy.FuzzyText(length=100)
 
 
 class RouteCreationFactory(BaseModel):
-    name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
     description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
     origin_id: int | None = None
     destination_id: int | None = None
