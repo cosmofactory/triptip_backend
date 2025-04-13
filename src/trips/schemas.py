@@ -92,20 +92,18 @@ class SlocationOutput(OrmBase):
 class SRouteInput(OrmBase):
     """Create new route."""
 
-    name: str
     description: str
     origin_id: int
-    destination_id: int | None
+    destination_id: int | None = None
 
 
 class SRouteOutput(OrmBase):
     """Route output schema."""
 
     id: int
-    name: str
     description: str
     origin_id: int
-    destination_id: int | None
+    destination_id: int | None = None
 
 
 class SHighlightInput(OrmBase):
