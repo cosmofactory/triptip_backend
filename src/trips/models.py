@@ -67,8 +67,12 @@ class Location(TimeStampModel):
         "Route", back_populates="destination", foreign_keys="[Route.destination_id]"
     )
     highlights: Mapped["Highlight"] = relationship("Highlight", back_populates="location")
+    sequence_id: Mapped[int]
 
-    __table_args__ = (UniqueConstraint("trip_id", "name", name="_trip_name_uc"),)
+    __table_args__ = (
+        UniqueConstraint("trip_id", "name", name="_trip_name_uc"),
+        UniqueConstraint("trip_id", "sequence_id", name="_trip_sequence_uc"),
+    )
 
     @property
     def author_id(self) -> int:

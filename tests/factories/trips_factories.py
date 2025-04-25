@@ -2,14 +2,17 @@ import datetime
 import random
 import string
 from datetime import date, timedelta
+from itertools import count
 
 import factory
 import factory.fuzzy
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.settings.enums import RegionEnum
 from src.trips.dao import HighlightDAO, LocationDAO, RouteDAO, TripDAO
 from tests.factories.base_factory import AsyncFactory
+
+sequence_id_generator = count(1)
 
 
 class TripFactory(AsyncFactory):
@@ -41,6 +44,7 @@ class TripCreationFactory(BaseModel):
 class LocationCreationFactory(BaseModel):
     name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
     description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    sequence_id: int = Field(default_factory=lambda: next(sequence_id_generator))
 
 
 class LocationFactory(AsyncFactory):
@@ -50,6 +54,7 @@ class LocationFactory(AsyncFactory):
     name = factory.fuzzy.FuzzyText(length=10)
     description = factory.fuzzy.FuzzyText(length=100)
     trip_id = None
+    sequence_id = factory.LazyFunction(lambda: next(sequence_id_generator))
 
 
 class TripWith3LocationsFactory(TripFactory):
