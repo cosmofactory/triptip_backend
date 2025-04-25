@@ -79,6 +79,7 @@ class SLocationInput(OrmBase):
 
     name: str
     description: str
+    sequence_id: int
 
 
 class SlocationOutput(OrmBase):
@@ -87,6 +88,7 @@ class SlocationOutput(OrmBase):
     id: int
     name: str
     description: str
+    sequence_id: int | None
 
 
 class SRouteInput(OrmBase):
