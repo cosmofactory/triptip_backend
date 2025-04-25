@@ -1,14 +1,21 @@
-FROM python:3.12-slim
-
-RUN pip3 install poetry==1.8.2 lockfile
+FROM python:3.12-slim-bookworm
+COPY --from=ghcr.io/astral-sh/uv:0.6.1 /uv /uvx /bin/
 
 WORKDIR /app
+ENV UV_COMPILE_BYTECODE=1
 
-COPY pyproject.toml poetry.lock ./
+ENV UV_LINK_MODE=copy
 
-ENV PATH="${PATH}:/root/.poetry/bin"
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
 
-RUN set -ex; \
-    poetry config --list && poetry install -vvv --no-interaction --no-dev
+ADD . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
-COPY . .
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 80
+

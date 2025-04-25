@@ -3,8 +3,8 @@ services:
     image: cosmosfactory/triptip_backend:latest
     container_name: triptip_service
     command: >
-      bash -c "poetry run alembic upgrade head &&
-      poetry run uvicorn src.main:app --forwarded-allow-ips='*' --proxy-headers --host 0.0.0.0 --port 8000 --workers 4"
+      bash -c "uv run alembic upgrade head &&
+      uv run uvicorn src.main:app --forwarded-allow-ips='*' --proxy-headers --host 0.0.0.0 --port 8000 --workers 4"
     depends_on:
       - db
     restart: always

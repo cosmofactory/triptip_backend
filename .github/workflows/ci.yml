@@ -19,57 +19,43 @@ jobs:
             - 5432:5432
 
     steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v4
-          with:
-            python-version: 3.12.2
+      - uses: actions/checkout@v4
 
-        - name: Install poetry
-          uses: abatilo/actions-poetry@v3.0.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.1"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Set up Python
+        run: uv python install 3.12
 
-        - name: Setup a local virtual environment
-          run: |
-            poetry config virtualenvs.create true --local
-            poetry config virtualenvs.in-project true --local
+      - name: Run test
+        run: MODE=TEST uv run pytest --cov=src --cov-report=html:htmlcov  
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          ALGORITHM: ${{ secrets.ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+          LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
+          SERVICE_NAME: pytest
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+          MODE: TEST
+          COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
+          CONTEXT: ${{ runner.os }}-py3.12.2
 
-        - uses: actions/cache@v3
-          name: Define a cache for the virtual environment based on the dependencies lock file
-          with:
-            path: ./.venv
-            key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Run ruff
+        run: uv run ruff check .
 
-        - name: Install the project dependencies
-          run: poetry install
-
-        - run: mkdir coverage
-
-        - name: Run pytest
-          run: |
-            MODE=TEST poetry run pytest --cov=src --cov-report=html:htmlcov  
-          env:
-            DB_HOST: ${{ secrets.DB_HOST }}
-            DB_PORT: ${{ secrets.DB_PORT }}
-            DB_USER: ${{ secrets.DB_USER }}
-            DB_PASS: ${{ secrets.DB_PASS }}
-            DB_NAME: ${{ secrets.DB_NAME }}
-            JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-            ALGORITHM: ${{ secrets.ALGORITHM }}
-            ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
-            REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
-            LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
-            SERVICE_NAME: pytest
-            AWS_ACCESS_KEY_ID: test
-            AWS_SECRET_ACCESS_KEY: test
-            AWS_REGION: us-east-1
-            MODE: TEST
-            COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
-            CONTEXT: ${{ runner.os }}-py3.12.2
-
-        - name: Run ruff
-          run: poetry run ruff check .
-
-        - name: Archive coverage report
-          uses: actions/upload-artifact@v4
-          with:
-            name: coverage-report
-            path: htmlcov
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov
