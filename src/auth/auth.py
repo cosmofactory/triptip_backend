@@ -38,7 +38,6 @@ async def check_user_exists(db: AsyncSession, email: str) -> bool:
 
 
 async def hash_user_password(user_data: SUserRegister) -> str:
-    """Check if the user with the provided email exists and hash the password."""
     return get_password_hash(user_data.password)
 
 
