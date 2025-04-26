@@ -1,7 +1,7 @@
 import datetime
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Response, status
+from fastapi import BackgroundTasks, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.dao import AuthDAO, RefreshTokenDAO
 from src.auth.schemas import SUserLogin, SUserRegister, TokenData
 from src.database.database import get_db
+from src.emails.service import render_verification_email, send_email
 from src.settings.config import settings
 from src.users.models import User
 from src.users.schemas import SUserOutput
@@ -28,13 +29,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-async def hash_user_password(db: AsyncSession, user_data: SUserRegister) -> str:
-    """Check if the user with the provided email exists and hash the password."""
-    check_existing_user = await AuthDAO.get_one_or_none(db, email=user_data.email)
+async def check_user_exists(db: AsyncSession, email: str) -> bool:
+    check_existing_user = await AuthDAO.get_one_or_none(db, email=email)
     if check_existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="User with this email already exists"
         )
+
+
+async def hash_user_password(user_data: SUserRegister) -> str:
+    """Check if the user with the provided email exists and hash the password."""
     return get_password_hash(user_data.password)
 
 
@@ -132,3 +136,42 @@ async def get_current_user(
     if not user:
         raise credentials_exception
     return SUserOutput.model_validate(user)
+
+
+def create_email_verification_token(
+    email: str,
+    expires_delta: datetime.timedelta = datetime.timedelta(
+        hours=settings.EMAIL_VERIFICATION_EXPIRATION_HOURS
+    ),
+) -> str:
+    """Create a token for email verification."""
+    payload = {
+        "sub": email,
+        "verify": True,
+        "exp": datetime.datetime.now(datetime.timezone.utc) + expires_delta,
+    }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+async def send_verification_email(email: str, token: str) -> None:
+    """Send email with the verification token."""
+    verification_link = f"{settings.VERIFICATION_URL}/{token}"
+    email_body = render_verification_email(email, verification_link)
+    await send_email(email, f"Email Verification for {settings.PROJECT_NAME}", email_body)
+
+
+async def register_user(
+    db: AsyncSession, user_data: SUserRegister, background_tasks: BackgroundTasks
+) -> SUserOutput:
+    """Register a new user."""
+    await check_user_exists(db, user_data.email)
+    hashed_password = await hash_user_password(user_data)
+    await AuthDAO.create(
+        db, email=user_data.email, password=hashed_password, username=user_data.username
+    )
+    token = create_email_verification_token(user_data.email)
+    background_tasks.add_task(
+        send_verification_email,
+        user_data.email,
+        token,
+    )

@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 
 from src.auth.auth import (
     authenticate_user,
     create_tokens,
-    hash_user_password,
+    register_user,
     set_cookies,
 )
 from src.auth.dao import AuthDAO
@@ -23,9 +23,10 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     status_code=status.HTTP_201_CREATED,
     responses={status.HTTP_409_CONFLICT: {"description": "User with this email already exists"}},
 )
-async def register_user(
+async def register_user_handler(
     user_data: SUserRegister,
     db: SessionDep,
+    background_tasks: BackgroundTasks,
 ):
     """
     Register a new user.
@@ -33,10 +34,13 @@ async def register_user(
     Check if the user with the provided email already exists.
     If the user does not exist, hash the password and create a new user.
     """
-    hashed_password = await hash_user_password(db, user_data)
-    await AuthDAO.create(
-        db, email=user_data.email, password=hashed_password, username=user_data.username
+
+    await register_user(
+        db,
+        user_data,
+        background_tasks,
     )
+    return Response(status_code=status.HTTP_201_CREATED)
 
 
 @router.post(

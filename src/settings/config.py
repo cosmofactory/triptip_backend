@@ -2,9 +2,27 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+ENV_FILE = ".env"
+
+
+class EmailServiceSettings(BaseSettings):
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    EMAIL_FROM: str
+    SMTP_STARTTLS: bool
+    SMTP_SSL_TLS: bool
+
+    model_config = SettingsConfigDict(env_file=ENV_FILE, env_prefix="EMAIL_", extra="ignore")
+
 
 class Settings(BaseSettings):
     """Base settings class to store all the configuration variables."""
+
+    PROJECT_NAME: str = "TripTip"
+
+    VERIFICATION_URL: str = "https://triptip.pro/verify"
 
     # Test settings
     MODE: Literal["DEV", "TEST", "PROD"]
@@ -20,6 +38,7 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
+    EMAIL_VERIFICATION_EXPIRATION_HOURS: int = 24
 
     AWS_ACCESS_KEY_ID: str
     AWS_SECRET_ACCESS_KEY: str
@@ -44,8 +63,11 @@ class Settings(BaseSettings):
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+    email_service: EmailServiceSettings = EmailServiceSettings()
+
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILE,
+        extra="ignore",
     )
 
 

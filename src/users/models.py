@@ -25,6 +25,7 @@ class User(TimeStampModel):
     userpic: Mapped[str | None]
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
+    is_verified: Mapped[bool] = mapped_column(default=False)
 
     trips: Mapped[List["Trip"]] = relationship(
         "Trip",
