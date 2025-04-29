@@ -4,6 +4,33 @@ run-name: Push to ${{ github.ref_name }} by @${{ github.actor }}
 on:
   push
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASS: ${{ secrets.DB_PASS }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+  ALGORITHM: ${{ secrets.ALGORITHM }}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+  REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
+  LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
+  SERVICE_NAME: pytest
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_REGION: us-east-1
+  MODE: TEST
+  EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+  EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+  EMAIL_SMTP_USERNAME: ${{ secrets.EMAIL_SMTP_USERNAME }}
+  EMAIL_SMTP_PASSWORD: ${{ secrets.EMAIL_SMTP_PASSWORD }}
+  EMAIL_EMAIL_FROM: ${{ secrets.EMAIL_EMAIL_FROM }}
+  EMAIL_SMTP_STARTTLS: ${{ secrets.EMAIL_SMTP_STARTTLS }}
+  EMAIL_SMTP_SSL_TLS: ${{ secrets.EMAIL_SMTP_SSL_TLS }}
+
+
+  
 jobs:
 
   test_and_lint:
@@ -33,21 +60,6 @@ jobs:
       - name: Run test
         run: MODE=TEST uv run pytest --cov=src --cov-report=html:htmlcov  
         env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          ALGORITHM: ${{ secrets.ALGORITHM }}
-          ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
-          REFRESH_TOKEN_EXPIRE_DAYS: ${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}
-          LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
-          SERVICE_NAME: pytest
-          AWS_ACCESS_KEY_ID: test
-          AWS_SECRET_ACCESS_KEY: test
-          AWS_REGION: us-east-1
-          MODE: TEST
           COVERAGE_FILE: coverage/.coverage.${{ runner.os }}-py3.12.2
           CONTEXT: ${{ runner.os }}-py3.12.2
 

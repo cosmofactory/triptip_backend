@@ -1,11 +1,14 @@
 import asyncio
+import datetime
 from http import HTTPStatus
 
+import jwt
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.auth import get_password_hash
+from src.auth.auth import create_email_verification_token, get_password_hash
+from src.settings.config import settings
 from src.users.dao import UserDAO
 
 
@@ -88,3 +91,26 @@ class TestAuth:
         assert response.json()["refresh_token"] != old_refresh_token
         assert authenticated_ac.cookies.get("access_token") != old_access_token
         assert authenticated_ac.cookies.get("refresh_token") != old_refresh_token
+
+
+@pytest.mark.parametrize(
+    "email, expires_delta",
+    [
+        ("test@example.com", datetime.timedelta(hours=1)),
+        ("user@domain.com", datetime.timedelta(hours=2)),
+        ("another@example.com", datetime.timedelta(hours=3)),
+    ],
+)
+def test_create_email_verification_token(email, expires_delta):
+    token = create_email_verification_token(email, expires_delta)
+    payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+    assert payload.get("sub") == email
+    assert payload.get("verify") is True
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    token_exp = datetime.datetime.fromtimestamp(payload.get("exp"), tz=datetime.timezone.utc)
+
+    expected_exp = now + expires_delta
+    time_difference = abs((token_exp - expected_exp).total_seconds())
+    assert time_difference < 2, f"Expiration delta {time_difference} exceeded allowed tolerance"

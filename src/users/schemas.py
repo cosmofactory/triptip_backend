@@ -23,6 +23,7 @@ class SUserOutput(OrmBase):
     userpic: str | None
     bio: str | None
     is_admin: bool
+    is_verified: bool
 
 
 class SShortUserInfo(OrmBase):
