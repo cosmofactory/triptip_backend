@@ -1,6 +1,6 @@
 import logfire
 from fastapi import HTTPException, status
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, select, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -74,3 +74,19 @@ class BaseDAO:
         result = await db.execute(query)
         await db.commit()
         return result.scalars().first()
+
+@classmethod
+async def delete(cls, db: AsyncSession, obj_id: int):
+        """Delete object in the table."""
+        
+        """
+        Query to db (by obj_id)
+        If there is no object -> Status_Code = 404
+        Else delete it 
+        """
+        query = delete(cls.model).where(cls.model.id == obj_id)
+        result = await db.execute(query)
+        if result.rowcount == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Route not found")
+        await db.commit()

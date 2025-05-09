@@ -118,6 +118,23 @@ async def create_route(
     return route
 
 
+@router.delete("/locations/{location_id}/route",
+               status_code=status.HTTP_204_NO_CONTENT)
+async def delete_route(
+    location_id: int,
+    db: SessionDep,
+    user: Annotated[SUserOutput, Depends(get_current_user)]) -> None:
+    """
+    Delete an existing route.
+    Location ID is the origin of the route.
+    Only location author both can create and delete a route.
+    """
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(location_id, LocationDAO, user)
+    await TripService.delete_route(db, location_id)
+    return None
+
+
 @router.post("/route/{route_id}/highlight", status_code=status.HTTP_201_CREATED)
 async def create_highlight_for_route(
     route_id: int,

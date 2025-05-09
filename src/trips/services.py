@@ -1,6 +1,7 @@
 import logfire
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi import HTTPException
 from src.settings.enums import HighlightEnum
 from src.trips.dao import HighlightDAO, LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import (
@@ -72,6 +73,16 @@ class TripService:
         route_data["author_id"] = user_id
         created_route = await RouteDAO.create(db, **route_data)
         return created_route
+    
+    @staticmethod
+    @logfire.instrument()
+    async def delete_route(db: AsyncSession, location_id: int) -> None:
+        """Delete an existing route."""
+        route = await RouteDAO.get_object_or_404(db, origin_id=location_id)
+        if not route:
+            raise HTTPException(status_code=404, detail="Object not found")
+        await RouteDAO.delete(db, location_id)
+        return None
 
     @staticmethod
     @logfire.instrument()
