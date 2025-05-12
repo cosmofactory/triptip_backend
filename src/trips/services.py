@@ -72,14 +72,13 @@ class TripService:
         route_data["author_id"] = user_id
         created_route = await RouteDAO.create(db, **route_data)
         return created_route
-    
+
     @staticmethod
     @logfire.instrument()
-    async def delete_route(db: AsyncSession, location_id: int):
+    async def delete_route(db: AsyncSession, location_id: int) -> None:
         """Delete an existing route."""
-        route = await RouteDAO.get_object_or_404(db, origin_id=location_id)
-        if route:
-            await RouteDAO.delete(db, location_id)
+        await RouteDAO.delete(db, location_id)
+        return None
 
     @staticmethod
     @logfire.instrument()

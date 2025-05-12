@@ -118,14 +118,18 @@ async def create_route(
     return route
 
 
-@router.delete("/locations/{location_id}/route",
-               status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/locations/{location_id}/route",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_route(
     location_id: int,
     db: SessionDep,
-    user: Annotated[SUserOutput, Depends(get_current_user)]) -> None:
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+) -> None:
     """
     Delete an existing route.
+
     Location ID is the origin of the route.
     Only location author both can create and delete a route.
     """

@@ -30,4 +30,3 @@ migrate:
 # To revert last migration, run the following command:
 revert_migration:
 	uv run alembic downgrade -1
-#$$$
