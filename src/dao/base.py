@@ -77,13 +77,12 @@ class BaseDAO:
 
     @classmethod
     async def delete(cls, db: AsyncSession, obj_id: int) -> None:
-        """Delete object in the table."""
+        """Delete object in the table.
 
+        Query to db (by obj_id)
+        If there is no object -> Status_Code = 404
+        Else delete it
         """
-            Query to db (by obj_id)
-            If there is no object -> Status_Code = 404
-            Else delete it
-            """
         query = delete(cls.model).where(cls.model.id == obj_id)
         result = await db.execute(query)
         if result.rowcount == 0:
