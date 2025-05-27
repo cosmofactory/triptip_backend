@@ -112,7 +112,7 @@ class SHighlightInput(OrmBase):
     """Create new highlight."""
 
     name: str
-    description: str
+    description: str | None = None
 
 
 class SHighlightOutput(OrmBase):
