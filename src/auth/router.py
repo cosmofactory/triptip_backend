@@ -9,6 +9,7 @@ from src.auth.auth import (
     create_tokens,
     register_user,
     set_cookies,
+    verify_email,
 )
 from src.auth.dao import AuthDAO
 from src.auth.schemas import SUserRegister, Token
@@ -108,3 +109,8 @@ async def logout(response: Response):
     """Log out the user. Remove access and refresh tokens from cookies."""
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
+
+
+@router.post("/verify", status_code=status.HTTP_200_OK, response_model=Token)
+async def verify_email_handler(token: str, session: SessionDep) -> Token:
+    return await verify_email(token, session)

@@ -92,25 +92,65 @@ class TestAuth:
         assert authenticated_ac.cookies.get("access_token") != old_access_token
         assert authenticated_ac.cookies.get("refresh_token") != old_refresh_token
 
+    async def test_verify_email_handler(self, ac: AsyncClient, session: AsyncSession):
+        """
+        Test email verification handler.
 
-@pytest.mark.parametrize(
-    "email, expires_delta",
-    [
-        ("test@example.com", datetime.timedelta(hours=1)),
-        ("user@domain.com", datetime.timedelta(hours=2)),
-        ("another@example.com", datetime.timedelta(hours=3)),
-    ],
-)
-def test_create_email_verification_token(email, expires_delta):
-    token = create_email_verification_token(email, expires_delta)
-    payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+        1. Create a new user (initially unverified).
+        2. Generate an email verification token for that user.
+        3. Call /auth/verify with the token.
+        4. Ensure a 200 OK, that access & refresh tokens are returned,
+           and that the user is marked as verified in the database.
+        """
+        email = "verify_test@example.com"
+        raw_password = "VerifyPass123"
+        hashed = get_password_hash(raw_password)
+        await UserDAO.create(
+            session,
+            email=email,
+            username="VerifyUser",
+            password=hashed,
+            bio="Oh yes",
+        )
 
-    assert payload.get("sub") == email
-    assert payload.get("verify") is True
+        user_before = await UserDAO.get_one_or_none(session, email=email)
+        assert user_before is not None
+        assert user_before.is_verified is False
 
-    now = datetime.datetime.now(datetime.timezone.utc)
-    token_exp = datetime.datetime.fromtimestamp(payload.get("exp"), tz=datetime.timezone.utc)
+        token = create_email_verification_token(email, datetime.timedelta(hours=1))
 
-    expected_exp = now + expires_delta
-    time_difference = abs((token_exp - expected_exp).total_seconds())
-    assert time_difference < 2, f"Expiration delta {time_difference} exceeded allowed tolerance"
+        response = await ac.post(
+            "/auth/verify",
+            params={"token": token},
+        )
+        assert response.status_code == HTTPStatus.OK
+
+        payload = response.json()
+        assert "access_token" in payload
+        assert "refresh_token" in payload
+
+        user_after = await UserDAO.get_one_or_none(session, email=email)
+        assert user_after is not None
+        assert user_after.is_verified is True
+
+    @pytest.mark.parametrize(
+        "email, expires_delta",
+        [
+            ("test@example.com", datetime.timedelta(hours=1)),
+            ("user@domain.com", datetime.timedelta(hours=2)),
+            ("another@example.com", datetime.timedelta(hours=3)),
+        ],
+    )
+    def test_create_email_verification_token(self, email, expires_delta):
+        token = create_email_verification_token(email, expires_delta)
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+        assert payload.get("sub") == email
+        assert payload.get("verify") is True
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        token_exp = datetime.datetime.fromtimestamp(payload.get("exp"), tz=datetime.timezone.utc)
+
+        expected_exp = now + expires_delta
+        time_difference = abs((token_exp - expected_exp).total_seconds())
+        assert time_difference < 2, f"Expiration delta {time_difference} exceeded allowed tolerance"

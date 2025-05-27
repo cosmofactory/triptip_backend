@@ -1,19 +1,28 @@
 import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
+import logfire
 from fastapi import BackgroundTasks, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.dao import AuthDAO, RefreshTokenDAO
-from src.auth.schemas import SUserLogin, SUserRegister, TokenData
+from src.auth.schemas import SUserLogin, SUserRegister, Token, TokenData
 from src.database.database import get_db
 from src.emails.service import render_verification_email, send_email
 from src.settings.config import settings
+from src.users.dao import UserDAO
 from src.users.models import User
 from src.users.schemas import SUserOutput
+from src.utils.exceptions import (
+    InvalidTokenPayloadException,
+    InvalidTokenTypeException,
+    TokenExpiredException,
+    UserNotFoundException,
+)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -29,6 +38,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
+@logfire.instrument()
 async def check_user_exists(db: AsyncSession, email: str) -> bool:
     check_existing_user = await AuthDAO.get_one_or_none(db, email=email)
     if check_existing_user:
@@ -41,6 +51,7 @@ async def hash_user_password(user_data: SUserRegister) -> str:
     return get_password_hash(user_data.password)
 
 
+@logfire.instrument()
 async def authenticate_user(db: AsyncSession, email, password) -> SUserLogin:
     """Check if the user with the provided email and password exists."""
     user = await AuthDAO.get_one_or_none(db, email=email)
@@ -49,6 +60,7 @@ async def authenticate_user(db: AsyncSession, email, password) -> SUserLogin:
     return user
 
 
+@logfire.instrument()
 def create_access_token(data: dict, expires_delta: datetime.timedelta | None = None):
     """Create access token with the given data and expiration time."""
     to_encode = data.copy()
@@ -61,6 +73,7 @@ def create_access_token(data: dict, expires_delta: datetime.timedelta | None = N
     return encoded_jwt
 
 
+@logfire.instrument()
 def create_refresh_token(data: dict, expires_delta: datetime.timedelta | None = None):
     """Create refresh token with the given data and expiration time."""
     to_encode = data.copy()
@@ -73,6 +86,7 @@ def create_refresh_token(data: dict, expires_delta: datetime.timedelta | None = 
     return encoded_jwt
 
 
+@logfire.instrument()
 async def create_tokens(db: AsyncSession, user: User) -> dict:
     """
     Call the create_access_token and create_refresh_token.
@@ -114,6 +128,7 @@ async def set_cookies(response: Response, access_token: str, refresh_token: str)
     )
 
 
+@logfire.instrument()
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)], db=Depends(get_db)
 ) -> SUserOutput:
@@ -137,6 +152,7 @@ async def get_current_user(
     return SUserOutput.model_validate(user)
 
 
+@logfire.instrument()
 def create_email_verification_token(
     email: str,
     expires_delta: datetime.timedelta = datetime.timedelta(
@@ -152,6 +168,7 @@ def create_email_verification_token(
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+@logfire.instrument()
 async def send_verification_email(email: str, token: str) -> None:
     """Send email with the verification token."""
     verification_link = f"{settings.VERIFICATION_URL}/{token}"
@@ -159,6 +176,7 @@ async def send_verification_email(email: str, token: str) -> None:
     await send_email(email, f"Email Verification for {settings.PROJECT_NAME}", email_body)
 
 
+@logfire.instrument()
 async def register_user(
     db: AsyncSession, user_data: SUserRegister, background_tasks: BackgroundTasks
 ) -> SUserOutput:
@@ -174,3 +192,39 @@ async def register_user(
         user_data.email,
         token,
     )
+
+
+def verify_token(token: str, payload_value: Literal["reset", "verify"]) -> str:
+    """Verify token and extract email from it."""
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if not payload.get(payload_value):
+            raise InvalidTokenTypeException
+        email = payload.get("sub")
+        if email is None:
+            raise InvalidTokenPayloadException
+        return email
+    except ExpiredSignatureError as e:
+        raise TokenExpiredException from e
+    except InvalidTokenError as e:
+        raise InvalidTokenTypeException from e
+
+
+@logfire.instrument()
+async def verify_email(token: str, session: AsyncSession) -> Token:
+    """
+    Verify the email with the given token and login user.
+
+    Update user in database in case of successful verification.
+    """
+    email = verify_token(token, "verify")
+
+    user = await UserDAO.get_one_or_none(session, email=email)
+    user_model = SUserOutput.model_validate(user)
+    if not user:
+        raise UserNotFoundException
+
+    user_model.is_verified = True
+    await UserDAO.update(session, user_model.id, **user_model.model_dump())
+    tokens = await create_tokens(session, user)
+    return Token(**tokens, user_data=user_model)
