@@ -160,16 +160,19 @@ class TestTrips:
         Test route endpoint.
         """
         route = create_route
-        
-        #GET route
+
+        # GET route
         response = await authenticated_ac.get(f"/trips/locations/{route.origin_id}/route")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["origin_id"] == route.origin_id
         assert response.json()["destination_id"] == route.destination_id
-        
-        #DELETE route
+
+        # DELETE route
         delete_response = await authenticated_ac.delete(f"/trips/locations/{route.origin_id}/route")
+        if delete_response.status_code == HTTPStatus.NOT_FOUND:
+            raise AssertionError("Object NOT_FOUND, expected NO_CONTENT")
         assert delete_response.status_code == HTTPStatus.NO_CONTENT
+
 
 @pytest.mark.parametrize(
     "user_id, expected_status, anonymous",
