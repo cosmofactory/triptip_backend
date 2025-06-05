@@ -75,9 +75,9 @@ class TripService:
 
     @staticmethod
     @logfire.instrument()
-    async def delete_route(db: AsyncSession, location_id: int) -> None:
+    async def delete_route(db: AsyncSession, route_id: int) -> None:
         """Delete an existing route."""
-        await RouteDAO.delete(db, location_id)
+        await RouteDAO.delete(db, route_id)
         return None
 
     @staticmethod

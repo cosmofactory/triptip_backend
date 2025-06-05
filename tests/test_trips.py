@@ -5,6 +5,7 @@ from httpx import AsyncClient
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.trips.dao import RouteDAO
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
     HighlightFactory,
@@ -153,25 +154,41 @@ class TestTrips:
         response = await authenticated_ac.post("/trips", json=trip_data)
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
-    async def test_route_endpoint(
-        self, authenticated_ac: AsyncClient, session: AsyncSession, create_route: RouteFactory
+    async def test_route_endpoint_get(
+        self, authenticated_ac: AsyncClient, create_route: RouteFactory
     ):
         """
         Test route endpoint.
         """
         route = create_route
 
-        # GET route
         response = await authenticated_ac.get(f"/trips/locations/{route.origin_id}/route")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["origin_id"] == route.origin_id
         assert response.json()["destination_id"] == route.destination_id
 
-        # DELETE route
-        delete_response = await authenticated_ac.delete(f"/trips/locations/{route.origin_id}/route")
-        if delete_response.status_code == HTTPStatus.NOT_FOUND:
-            raise AssertionError("Object NOT_FOUND, expected NO_CONTENT")
-        assert delete_response.status_code == HTTPStatus.NO_CONTENT
+    async def test_route_endpoint_delete(
+        self, authenticated_ac: AsyncClient, session: AsyncSession, create_route: RouteFactory
+    ):
+        """
+        Test route deletion endpoint.
+
+        Create a route and check if it can be deleted.
+        """
+        response = await authenticated_ac.delete(f"/trips/route/{create_route.id}")
+        assert response.status_code == HTTPStatus.NO_CONTENT
+        route = await RouteDAO.get_one_or_none(session, id=create_route.id)
+        assert route is None
+
+    async def test_route_endpoint_delete_non_existent(self, authenticated_ac: AsyncClient):
+        """
+        Test route deletion endpoint for non-existent route.
+
+        Check if it returns a 404 error for a non-existent route ID.
+        """
+        non_existent_id = 999999
+        response = await authenticated_ac.delete(f"/trips/route/{non_existent_id}")
+        assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.parametrize(

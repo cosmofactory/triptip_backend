@@ -119,11 +119,11 @@ async def create_route(
 
 
 @router.delete(
-    "/locations/{location_id}/route",
+    "/route/{route_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_route(
-    location_id: int,
+    route_id: int,
     db: SessionDep,
     user: Annotated[SUserOutput, Depends(get_current_user)],
 ) -> None:
@@ -134,8 +134,8 @@ async def delete_route(
     Only location author both can create and delete a route.
     """
     permissions = Permissions(db)
-    await permissions.is_author_or_read_only(location_id, LocationDAO, user)
-    await TripService.delete_route(db, location_id)
+    await permissions.is_author_or_read_only(route_id, LocationDAO, user)
+    await TripService.delete_route(db, route_id)
     return None
 
 
