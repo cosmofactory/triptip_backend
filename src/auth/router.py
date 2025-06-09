@@ -12,7 +12,7 @@ from src.auth.auth import (
     verify_email,
 )
 from src.auth.dao import AuthDAO
-from src.auth.schemas import SUserRegister, Token
+from src.auth.schemas import SUserRegister, Token, VerifyTokenInput
 from src.database.database import SessionDep
 from src.settings.config import settings
 
@@ -112,5 +112,5 @@ async def logout(response: Response):
 
 
 @router.post("/verify", status_code=status.HTTP_200_OK, response_model=Token)
-async def verify_email_handler(token: str, session: SessionDep) -> Token:
+async def verify_email_handler(token: VerifyTokenInput, session: SessionDep) -> Token:
     return await verify_email(token, session)
