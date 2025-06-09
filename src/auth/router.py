@@ -112,5 +112,5 @@ async def logout(response: Response):
 
 
 @router.post("/verify", status_code=status.HTTP_200_OK, response_model=Token)
-async def verify_email_handler(token: VerifyTokenInput, session: SessionDep) -> Token:
-    return await verify_email(token, session)
+async def verify_email_handler(data: VerifyTokenInput, session: SessionDep) -> Token:
+    return await verify_email(data.token, session)
