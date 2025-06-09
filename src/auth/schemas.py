@@ -40,3 +40,9 @@ class Token(BaseModel):
     refresh_token: str | None
     token_type: str
     user_data: SUserOutput
+
+
+class VerifyTokenInput(BaseModel):
+    """Input schema for token verification."""
+
+    token: str
