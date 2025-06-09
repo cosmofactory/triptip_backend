@@ -121,7 +121,7 @@ class TestAuth:
 
         response = await ac.post(
             "/auth/verify",
-            data={"token": token},
+            json={"token": token},
         )
         assert response.status_code == HTTPStatus.OK
 
