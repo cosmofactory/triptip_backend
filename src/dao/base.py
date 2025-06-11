@@ -86,5 +86,8 @@ class BaseDAO:
         query = delete(cls.model).where(cls.model.id == obj_id)
         result = await db.execute(query)
         if result.rowcount == 0:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Route not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No {cls.model.__name__} found with id {obj_id}",
+            )
         await db.commit()

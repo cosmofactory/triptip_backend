@@ -115,7 +115,7 @@ async def delete_location(
     """
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(location_id, LocationDAO, user)
-    await LocationDAO.delete(db, location_id)
+    await TripService.delete_location(db, location_id)
     return None
 
 
