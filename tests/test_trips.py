@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.trips.dao import RouteDAO
+from src.trips.dao import LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
     HighlightFactory,
@@ -38,6 +38,20 @@ class TestTrips:
         assert response.status_code == status
         if status == HTTPStatus.CREATED:
             assert response.json()["name"] == trip.name
+
+    async def test_trip_endpoint_delete(
+        self,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+        create_trip: TripFactory,
+    ):
+        """
+        Test trip delete endpoint.
+        """
+        response = await authenticated_ac.delete(f"/trips/{create_trip.id}")
+        assert response.status_code == HTTPStatus.NO_CONTENT
+        trip = await TripDAO.get_one_or_none(session, id=create_trip.id)
+        assert trip is None
 
     async def test_trip_creation_unauthenticated(self, ac: AsyncClient):
         """
@@ -139,6 +153,20 @@ class TestTrips:
         response = await authenticated_ac.get(f"/trips/{trip.id}/locations")
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) == 3
+
+    async def test_location_endpoint_delete(
+        self,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+        create_location: LocationFactory,
+    ):
+        """
+        Test location endpoint delete.
+        """
+        response = await authenticated_ac.delete(f"/trips/locations/{create_location.id}")
+        assert response.status_code == HTTPStatus.NO_CONTENT
+        location = await LocationDAO.get_one_or_none(session, id=create_location.id)
+        assert location is None
 
     async def test_trip_creation_with_fake_region(
         self, authenticated_ac: AsyncClient, session: AsyncSession

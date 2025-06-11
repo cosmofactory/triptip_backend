@@ -53,6 +53,23 @@ async def create_trip(
     return created_trip
 
 
+@router.delete("/{trip_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_trip(
+    trip_id: int,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> None:
+    """
+    Delete an existing trip.
+
+    Only trip author can delete a trip.
+    """
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(trip_id, TripDAO, user)
+    await TripService.delete_trip(db, trip_id)
+    return None
+
+
 @router.post(
     "/{trip_id}/locations",
     status_code=status.HTTP_201_CREATED,
@@ -83,6 +100,23 @@ async def get_locations(
     """Get all locations for a trip."""
     locations = await TripService.get_locations(db, trip_id)
     return locations
+
+
+@router.delete("/locations/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_location(
+    location_id: int,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> None:
+    """
+    Delete an existing location.
+
+    Only location author both can create and delete a location.
+    """
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(location_id, LocationDAO, user)
+    await LocationDAO.delete(db, location_id)
+    return None
 
 
 @router.get("/locations/{location_id}/route", response_model=SRouteOutput)
@@ -124,17 +158,16 @@ async def create_route(
 )
 async def delete_route(
     route_id: int,
-    db: SessionDep,
     user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
 ) -> None:
     """
     Delete an existing route.
 
-    Location ID is the origin of the route.
-    Only location author both can create and delete a route.
+    Only route author both can create and delete a route.
     """
     permissions = Permissions(db)
-    await permissions.is_author_or_read_only(route_id, LocationDAO, user)
+    await permissions.is_author_or_read_only(route_id, RouteDAO, user)
     await TripService.delete_route(db, route_id)
     return None
 
