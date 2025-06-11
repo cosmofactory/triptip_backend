@@ -43,6 +43,13 @@ class TripService:
 
     @staticmethod
     @logfire.instrument()
+    async def delete_trip(db: AsyncSession, trip_id: int) -> None:
+        """Delete a trip."""
+        await TripDAO.delete(db, trip_id)
+        return None
+
+    @staticmethod
+    @logfire.instrument()
     async def create_location(db: AsyncSession, trip_id: int, location_data: SLocationInput):
         """Create a new location."""
         location_data = location_data.model_dump()
@@ -59,6 +66,13 @@ class TripService:
 
     @staticmethod
     @logfire.instrument()
+    async def delete_location(db: AsyncSession, location_id: int) -> None:
+        """Delete an existing location."""
+        await LocationDAO.delete(db, location_id)
+        return None
+
+    @staticmethod
+    @logfire.instrument()
     async def get_route(db: AsyncSession, location_id: int):
         """Get route between two locations."""
         route = await RouteDAO.get_object_or_404(db, origin_id=location_id)
@@ -72,6 +86,13 @@ class TripService:
         route_data["author_id"] = user_id
         created_route = await RouteDAO.create(db, **route_data)
         return created_route
+
+    @staticmethod
+    @logfire.instrument()
+    async def delete_route(db: AsyncSession, route_id: int) -> None:
+        """Delete an existing route."""
+        await RouteDAO.delete(db, route_id)
+        return None
 
     @staticmethod
     @logfire.instrument()
