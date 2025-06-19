@@ -8,12 +8,12 @@ from src.auth.auth import (
     authenticate_user,
     create_tokens,
     register_user,
+    resend_verification_email,
     set_cookies,
     verify_email,
-    resend_verification_email,
 )
 from src.auth.dao import AuthDAO
-from src.auth.schemas import SUserRegister, Token, VerifyTokenInput, ResendEmailInput
+from src.auth.schemas import ResendEmailInput, SUserRegister, Token, VerifyTokenInput
 from src.database.database import SessionDep
 from src.settings.config import settings
 

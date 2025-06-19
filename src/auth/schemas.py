@@ -47,7 +47,8 @@ class VerifyTokenInput(BaseModel):
 
     token: str
 
+
 class ResendEmailInput(BaseModel):
     """Schema for resending email verification."""
-    
+
     email: EmailStr

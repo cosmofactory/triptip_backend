@@ -196,12 +196,10 @@ async def register_user(
 
 @logfire.instrument()
 async def resend_verification_email(
-    email: str, 
-    db: AsyncSession, 
-    background_tasks: BackgroundTasks
+    email: str, db: AsyncSession, background_tasks: BackgroundTasks
 ) -> None:
     """Resend the verification email.
-    
+
     Check is user exists and is not verified.
     Then send verification email.
     """
