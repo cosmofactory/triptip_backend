@@ -118,10 +118,10 @@ class Route(TimeStampModel):
     highlights: Mapped["Highlight"] = relationship("Highlight", back_populates="route")
 
     def __repr__(self) -> str:
-        return f"Route(id={self.id!r}, name={self.name!r})"
+        return f"Route(id={self.id!r}, name={self.description!r})"
 
     def __str__(self) -> str:
-        return f"Route(id={self.id}, name={self.name})"
+        return f"Route(id={self.id}, name={self.description})"
 
 
 class Highlight(TimeStampModel):
