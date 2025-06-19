@@ -10,9 +10,10 @@ from src.auth.auth import (
     register_user,
     set_cookies,
     verify_email,
+    resend_verification_email,
 )
 from src.auth.dao import AuthDAO
-from src.auth.schemas import SUserRegister, Token, VerifyTokenInput
+from src.auth.schemas import SUserRegister, Token, VerifyTokenInput, ResendEmailInput
 from src.database.database import SessionDep
 from src.settings.config import settings
 
@@ -114,3 +115,18 @@ async def logout(response: Response):
 @router.post("/verify", status_code=status.HTTP_200_OK, response_model=Token)
 async def verify_email_handler(data: VerifyTokenInput, session: SessionDep) -> Token:
     return await verify_email(data.token, session)
+
+
+@router.post("/resend_verification", status_code=status.HTTP_200_OK)
+async def resend(
+    email_data: ResendEmailInput,
+    session: SessionDep,
+    background_tasks: BackgroundTasks,
+) -> dict[str, str]:
+    """Resend verification email."""
+    await resend_verification_email(
+        email_data.email,
+        session,
+        background_tasks,
+    )
+    return {"message": "Verification email has been sent"}

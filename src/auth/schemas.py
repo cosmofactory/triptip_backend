@@ -46,3 +46,8 @@ class VerifyTokenInput(BaseModel):
     """Input schema for token verification."""
 
     token: str
+
+class ResendEmailInput(BaseModel):
+    """Schema for resending email verification."""
+    
+    email: EmailStr
