@@ -190,7 +190,7 @@ class TestAuth:
         assert response_data["email"] == email
         assert "expires_in_hours" in response_data
 
-    async def test_resed_verification_email_failure(self, ac: AsyncClient):
+    async def test_resend_verification_email_failure(self, ac: AsyncClient):
         """
         Test resending verification email failure.
 
@@ -204,7 +204,7 @@ class TestAuth:
         assert response.status_code == HTTPStatus.NOT_FOUND
         assert "does not exist" in response.json()["detail"]
 
-    async def test_resed_verification_email_already_verified(
+    async def test_resend_verification_email_already_verified(
         self, ac: AsyncClient, session: AsyncSession
     ):
         """
