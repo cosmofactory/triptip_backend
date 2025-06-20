@@ -117,16 +117,28 @@ async def verify_email_handler(data: VerifyTokenInput, session: SessionDep) -> T
     return await verify_email(data.token, session)
 
 
-@router.post("/resend_verification", status_code=status.HTTP_200_OK)
+@router.post(
+    "/resend_verification",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=dict,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User with this email does not exist"},
+        status.HTTP_400_BAD_REQUEST: {"description": "User is already verified"},
+    },
+)
 async def resend(
     email_data: ResendEmailInput,
     session: SessionDep,
     background_tasks: BackgroundTasks,
-) -> dict[str, str]:
+) -> dict:
     """Resend verification email."""
     await resend_verification_email(
-        email_data.email,
         session,
+        email_data.email,
         background_tasks,
     )
-    return {"message": "Verification email has been sent"}
+    return {
+        "message": "Verification email sent successfully",
+        "email": email_data.email,
+        "expires_in_hours": settings.EMAIL_VERIFICATION_EXPIRATION_HOURS,
+    }

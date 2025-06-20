@@ -196,7 +196,7 @@ async def register_user(
 
 @logfire.instrument()
 async def resend_verification_email(
-    email: str, db: AsyncSession, background_tasks: BackgroundTasks
+    db: AsyncSession, email: str, background_tasks: BackgroundTasks
 ) -> None:
     """Resend the verification email.
 
@@ -209,7 +209,7 @@ async def resend_verification_email(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User with this email does not exist",
         )
-    if user.verified:
+    if user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User is already verified",
