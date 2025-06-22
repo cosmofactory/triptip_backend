@@ -195,29 +195,20 @@ async def register_user(
 
 
 @logfire.instrument()
-async def resend_verification_email(
-    db: AsyncSession, email: str, background_tasks: BackgroundTasks
-) -> None:
-    """Resend the verification email.
+async def resend_verification_email(user: SUserOutput, background_tasks: BackgroundTasks) -> None:
+    """Resend the verification email for authenticated user.
 
-    Check is user exists and is not verified.
-    Then send verification email.
+    Check if user is not verified and send verification email.
     """
-    user = await AuthDAO.get_one_or_none(db, email=email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User with this email does not exist",
-        )
     if user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User is already verified",
         )
-    verification_token = create_email_verification_token(email)
+    verification_token = create_email_verification_token(user.email)
     background_tasks.add_task(
         send_verification_email,
-        email,
+        user.email,
         verification_token,
     )
     return None

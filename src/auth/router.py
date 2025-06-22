@@ -7,15 +7,17 @@ from jose import JWTError, jwt
 from src.auth.auth import (
     authenticate_user,
     create_tokens,
+    get_current_user,
     register_user,
     resend_verification_email,
     set_cookies,
     verify_email,
 )
 from src.auth.dao import AuthDAO
-from src.auth.schemas import ResendEmailInput, SUserRegister, Token, VerifyTokenInput
+from src.auth.schemas import SUserRegister, Token, VerifyTokenInput
 from src.database.database import SessionDep
 from src.settings.config import settings
+from src.users.schemas import SUserOutput
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -122,23 +124,21 @@ async def verify_email_handler(data: VerifyTokenInput, session: SessionDep) -> T
     status_code=status.HTTP_202_ACCEPTED,
     response_model=dict,
     responses={
-        status.HTTP_404_NOT_FOUND: {"description": "User with this email does not exist"},
         status.HTTP_400_BAD_REQUEST: {"description": "User is already verified"},
+        status.HTTP_401_UNAUTHORIZED: {"description": "Invalid credentials"},
     },
 )
-async def resend(
-    email_data: ResendEmailInput,
-    session: SessionDep,
+async def resend_verification_email_handler(
+    current_user: Annotated[SUserOutput, Depends(get_current_user)],
     background_tasks: BackgroundTasks,
 ) -> dict:
-    """Resend verification email."""
+    """Resend verification email for authenticated user."""
     await resend_verification_email(
-        session,
-        email_data.email,
+        current_user,
         background_tasks,
     )
     return {
         "message": "Verification email sent successfully",
-        "email": email_data.email,
+        "email": current_user.email,
         "expires_in_hours": settings.EMAIL_VERIFICATION_EXPIRATION_HOURS,
     }
