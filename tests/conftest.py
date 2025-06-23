@@ -20,6 +20,7 @@ from tests.factories.fixtures import (  # noqa: F401
     create_trip,
     create_trip_from_second_user,
     mock_aws,
+    mock_email_service,
     mock_s3_bucket,
     post_route_data,
     post_route_data_for_others_location,

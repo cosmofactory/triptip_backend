@@ -159,6 +159,7 @@ class TestAuth:
         self,
         authenticated_ac: AsyncClient,
         session: AsyncSession,
+        mock_email_service,
     ):
         """
         Test successful resending verification email.
@@ -187,6 +188,7 @@ class TestAuth:
         self,
         authenticated_ac: AsyncClient,
         session: AsyncSession,
+        mock_email_service,
     ):
         """
         Resend verification email for verified user.
@@ -208,6 +210,7 @@ class TestAuth:
     async def test_resend_verification_email_unauthenticated(
         self,
         ac: AsyncClient,
+        mock_email_service,
     ):
         """
         Resend verification email without authentication.
