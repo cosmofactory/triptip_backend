@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     AWS_REGION: str
     AWS_BUCKET_NAME: str = "triptip"
 
+    AWS_CLOUDFRONT_DISTRIBUTION: str = "d1khyh6wja0468.cloudfront.net"
+
     SENTRY_KEY: str | None = None
 
     LOGFIRE_TOKEN: str | None = None

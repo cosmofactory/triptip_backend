@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -21,6 +21,7 @@ class SDetailedTripOutput(OrmBase):
     name: str
     description: str
     region: RegionEnum
+    created_at: datetime
     date_from: date
     date_to: date
     author_id: int

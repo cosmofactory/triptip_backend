@@ -25,11 +25,16 @@ class FileService:
         :param file: File to upload
         File will be stored in the bucket with the name of a UUID and the extension of the file.
         """
+        extension = file.filename.rsplit(".", 1)[-1]
+        key = f"{self.image_folder}/{uuid.uuid4()}.{extension}"
+
         async with self.session.client(service_name="s3") as s3_client:
-            file_name = f"{self.image_folder}/{uuid.uuid4()}.jpg"
             await s3_client.upload_fileobj(
-                file,
+                file.file,
                 self.bucket_name,
-                file_name,
+                key,
+                ExtraArgs={
+                    "ContentType": file.content_type or "application/octet-stream",
+                },
             )
-        return f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{file_name}"
+        return f"https://{settings.AWS_CLOUDFRONT_DISTRIBUTION}/{key}"
