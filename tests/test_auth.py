@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.auth import create_email_verification_token, get_password_hash
 from src.settings.config import settings
 from src.users.dao import UserDAO
+from tests.factories.fixtures import mock_email_service
 
 
 class TestAuth:
@@ -159,6 +160,7 @@ class TestAuth:
         self,
         authenticated_ac: AsyncClient,
         session: AsyncSession,
+        mock_email_service,
     ):
         """
         Test successful resending verification email.
@@ -180,19 +182,21 @@ class TestAuth:
         response_data = response.json()
         assert response_data["message"] == "Verification email sent successfully"
         assert "email" in response_data
+        assert response_data["email"] == current_user.email
         assert "expires_in_hours" in response_data
 
     async def test_resend_verification_email_already_verified(
         self,
         authenticated_ac: AsyncClient,
         session: AsyncSession,
+        mock_email_service,
     ):
         """
         Resend verification email for verified user.
 
         1. Verify the user.
         2. Call /auth/resend_verification.
-        3. Ensure a 400 BAD_REQUEST with an error message.
+        3. Ensure a 400_BAD_REQUEST with an error message.
         """
         current_user = authenticated_ac.user
         assert current_user is not None
@@ -204,7 +208,11 @@ class TestAuth:
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert "already verified" in response.json()["detail"]
 
-    async def test_resend_verification_email_unauthenticated(self, ac: AsyncClient):
+    async def test_resend_verification_email_unauthenticated(
+        self,
+        ac: AsyncClient,
+        mock_email_service,
+    ):
         """
         Resend verification email without authentication.
 

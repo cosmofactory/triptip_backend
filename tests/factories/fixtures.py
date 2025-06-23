@@ -114,6 +114,12 @@ def mock_aws(monkeypatch):
         yield
 
 
+@pytest.fixture()
+def mock_email_service(monkeypatch):
+    "Mock email sending service from actual implementation during tests."
+    monkeypatch.setattr("src.emails.service.send_email", lambda *args, **kwargs: None)
+
+
 @pytest.fixture(scope="function")
 async def create_location_highlight(session: AsyncSession, create_location: LocationFactory):
     location = create_location
