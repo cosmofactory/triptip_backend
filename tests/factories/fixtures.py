@@ -114,7 +114,7 @@ def mock_aws(monkeypatch):
         yield
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True, scope="function")
 def mock_email_service(monkeypatch):
     "Mock email sending service from actual implementation during tests."
     monkeypatch.setattr("src.emails.service.send_email", lambda *args, **kwargs: None)

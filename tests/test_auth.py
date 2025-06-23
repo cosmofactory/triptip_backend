@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.auth import create_email_verification_token, get_password_hash
 from src.settings.config import settings
 from src.users.dao import UserDAO
-from tests.factories.fixtures import mock_email_service
 
 
 class TestAuth:
@@ -160,7 +159,6 @@ class TestAuth:
         self,
         authenticated_ac: AsyncClient,
         session: AsyncSession,
-        mock_email_service,
     ):
         """
         Test successful resending verification email.
@@ -189,7 +187,6 @@ class TestAuth:
         self,
         authenticated_ac: AsyncClient,
         session: AsyncSession,
-        mock_email_service,
     ):
         """
         Resend verification email for verified user.
@@ -211,7 +208,6 @@ class TestAuth:
     async def test_resend_verification_email_unauthenticated(
         self,
         ac: AsyncClient,
-        mock_email_service,
     ):
         """
         Resend verification email without authentication.
