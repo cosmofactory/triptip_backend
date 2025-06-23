@@ -154,3 +154,71 @@ class TestAuth:
         expected_exp = now + expires_delta
         time_difference = abs((token_exp - expected_exp).total_seconds())
         assert time_difference < 2, f"Expiration delta {time_difference} exceeded allowed tolerance"
+
+    async def test_resend_verification_email_not_verified(
+        self,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+        mock_email_service,
+    ):
+        """
+        Test successful resending verification email.
+
+        1. Make an unverified user.
+        2. Call /auth/resend_verification.
+        3. Ensure a 202_ACCEPTED with success message and expiration time.
+        """
+        current_user = authenticated_ac.user
+        assert current_user is not None
+
+        await UserDAO.update(session, current_user.id, is_verified=False)
+        assert current_user.is_verified is False
+
+        response = await authenticated_ac.post("/auth/resend_verification")
+
+        assert response.status_code == HTTPStatus.ACCEPTED
+
+        response_data = response.json()
+        assert response_data["message"] == "Verification email sent successfully"
+        assert "email" in response_data
+        assert response_data["email"] == current_user.email
+        assert "expires_in_hours" in response_data
+
+    async def test_resend_verification_email_already_verified(
+        self,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+        mock_email_service,
+    ):
+        """
+        Resend verification email for verified user.
+
+        1. Verify the user.
+        2. Call /auth/resend_verification.
+        3. Ensure a 400_BAD_REQUEST with an error message.
+        """
+        current_user = authenticated_ac.user
+        assert current_user is not None
+
+        await UserDAO.update(session, current_user.id, is_verified=True)
+        assert current_user.is_verified is True
+
+        response = await authenticated_ac.post("/auth/resend_verification")
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert "already verified" in response.json()["detail"]
+
+    async def test_resend_verification_email_unauthenticated(
+        self,
+        ac: AsyncClient,
+        mock_email_service,
+    ):
+        """
+        Resend verification email without authentication.
+
+        1. Call /auth/resend_verification without authentication.
+        2. Ensure a 401_UNAUTHORIZED with an error message.
+        """
+        response = await ac.post("/auth/resend_verification")
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert "detail" in response.json()

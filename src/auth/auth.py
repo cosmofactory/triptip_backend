@@ -194,6 +194,26 @@ async def register_user(
     )
 
 
+@logfire.instrument()
+async def resend_verification_email(user: SUserOutput, background_tasks: BackgroundTasks) -> None:
+    """Resend the verification email for authenticated user.
+
+    Check if user is not verified and send verification email.
+    """
+    if user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is already verified",
+        )
+    verification_token = create_email_verification_token(user.email)
+    background_tasks.add_task(
+        send_verification_email,
+        user.email,
+        verification_token,
+    )
+    return None
+
+
 def verify_token(token: str, payload_value: Literal["reset", "verify"]) -> str:
     """Verify token and extract email from it."""
     try:
