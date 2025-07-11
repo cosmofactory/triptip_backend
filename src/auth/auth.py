@@ -12,7 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.dao import AuthDAO, RefreshTokenDAO
 from src.auth.schemas import SUserLogin, SUserRegister, Token, TokenData
 from src.database.database import get_db
-from src.emails.service import render_verification_email, send_email
+from src.emails.service import (
+    emails_limits_service,
+    render_verification_email,
+    send_email,
+)
 from src.settings.config import settings
 from src.users.dao import UserDAO
 from src.users.models import User
@@ -169,8 +173,15 @@ def create_email_verification_token(
 
 
 @logfire.instrument()
-async def send_verification_email(email: str, token: str) -> None:
+async def send_verification_email(
+    email: str,
+    token: str,
+    db: AsyncSession,
+    user_id: int,
+) -> None:
     """Send email with the verification token."""
+    await emails_limits_service(db, user_id)
+
     verification_link = f"{settings.VERIFICATION_URL}/{token}"
     email_body = render_verification_email(email, verification_link)
     await send_email(email, f"Email Verification for {settings.PROJECT_NAME}", email_body)
@@ -183,7 +194,7 @@ async def register_user(
     """Register a new user."""
     await check_user_exists(db, user_data.email)
     hashed_password = await hash_user_password(user_data)
-    await AuthDAO.create(
+    user = await AuthDAO.create(
         db, email=user_data.email, password=hashed_password, username=user_data.username
     )
     token = create_email_verification_token(user_data.email)
@@ -191,11 +202,17 @@ async def register_user(
         send_verification_email,
         user_data.email,
         token,
+        db,
+        user.id,
     )
 
 
 @logfire.instrument()
-async def resend_verification_email(user: SUserOutput, background_tasks: BackgroundTasks) -> None:
+async def resend_verification_email(
+    user: SUserOutput,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession,
+) -> None:
     """Resend the verification email for authenticated user.
 
     Check if user is not verified and send verification email.
@@ -210,6 +227,8 @@ async def resend_verification_email(user: SUserOutput, background_tasks: Backgro
         send_verification_email,
         user.email,
         verification_token,
+        db,
+        user.id,
     )
     return None
 
