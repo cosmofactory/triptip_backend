@@ -13,7 +13,7 @@ from src.auth.dao import AuthDAO, RefreshTokenDAO
 from src.auth.schemas import SUserLogin, SUserRegister, Token, TokenData
 from src.database.database import get_db
 from src.emails.service import (
-    emails_limits_service,
+    emails_limit_handler,
     render_verification_email,
     send_email,
 )
@@ -180,7 +180,7 @@ async def send_verification_email(
     user_id: int,
 ) -> None:
     """Send email with the verification token."""
-    await emails_limits_service(db, user_id)
+    await emails_limit_handler(db, user_id)
 
     verification_link = f"{settings.VERIFICATION_URL}/{token}"
     email_body = render_verification_email(email, verification_link)

@@ -8,7 +8,6 @@ from src.database.models import TimeStampModel
 
 if TYPE_CHECKING:
     from src.auth.models import RefreshToken
-    from src.emails.models import Emails
     from src.trips.models import Route, Trip
 
 
@@ -45,7 +44,6 @@ class User(TimeStampModel):
         cascade="all, delete",
         back_populates="user",
     )
-    emails: Mapped[List["Emails"]] = relationship("Emails", back_populates="author")
 
     def __repr__(self) -> str:
         return f"User(id={self.id!r}, email={self.email!r})"

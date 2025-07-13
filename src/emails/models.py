@@ -11,9 +11,7 @@ if TYPE_CHECKING:
 
 class Emails(TimeStampModel):
     """
-    Email limiter model for tracking email sending per user and globally.
-    - Per user: 20 emails per day
-    - Global: 2000 emails per day
+    Emails limiter model for tracking email sending per user and globally.
     """
 
     __tablename__ = "emails"
@@ -22,4 +20,4 @@ class Emails(TimeStampModel):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     emails_counter: Mapped[int] = mapped_column(Integer, default=0)
 
-    author: Mapped["User"] = relationship("User", back_populates="emails")
+    user: Mapped["User"] = relationship("User")
