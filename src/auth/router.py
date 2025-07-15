@@ -126,16 +126,19 @@ async def verify_email_handler(data: VerifyTokenInput, session: SessionDep) -> T
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "User is already verified"},
         status.HTTP_401_UNAUTHORIZED: {"description": "Invalid credentials"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Email sending limit exceeded"},
     },
 )
 async def resend_verification_email_handler(
     current_user: Annotated[SUserOutput, Depends(get_current_user)],
     background_tasks: BackgroundTasks,
+    db: SessionDep,
 ) -> dict:
     """Resend verification email for authenticated user."""
     await resend_verification_email(
         current_user,
         background_tasks,
+        db,
     )
     return {
         "message": "Verification email sent successfully",
