@@ -46,3 +46,16 @@ class VerifyTokenInput(BaseModel):
     """Input schema for token verification."""
 
     token: str
+
+
+class SPasswordRecoveryRequest(BaseModel):
+    """Schema for password recovery request."""
+
+    email: EmailStr
+
+
+class SPasswordRecovery(BaseModel):
+    """Schema for password recovery process."""
+
+    new_password: str
+    token: str

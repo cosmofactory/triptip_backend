@@ -10,10 +10,11 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.dao import AuthDAO, RefreshTokenDAO
-from src.auth.schemas import SUserLogin, SUserRegister, Token, TokenData
+from src.auth.schemas import SPasswordRecovery, SUserLogin, SUserRegister, Token, TokenData
 from src.database.database import get_db
 from src.emails.service import (
     emails_limit_handler,
+    render_password_recovery_email,
     render_verification_email,
     send_email,
 )
@@ -173,6 +174,22 @@ def create_email_verification_token(
 
 
 @logfire.instrument()
+def create_password_reset_token(
+    email: str,
+    expires_delta: datetime.timedelta = datetime.timedelta(
+        hours=settings.PASSWORD_RECOVERY_EXPIRATION_HOURS
+    ),
+) -> str:
+    """Create a token for password reset."""
+    payload = {
+        "sub": email,
+        "reset": True,
+        "exp": datetime.datetime.now(datetime.timezone.utc) + expires_delta,
+    }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+@logfire.instrument()
 async def send_verification_email(
     email: str,
     token: str,
@@ -185,6 +202,21 @@ async def send_verification_email(
     verification_link = f"{settings.VERIFICATION_URL}/{token}"
     email_body = render_verification_email(email, verification_link)
     await send_email(email, f"Email Verification for {settings.PROJECT_NAME}", email_body)
+
+
+@logfire.instrument()
+async def send_password_recovery_email(
+    email: str,
+    token: str,
+    db: AsyncSession,
+    user_id: int,
+) -> None:
+    """Send email with the password recovery token."""
+    await emails_limit_handler(db, user_id)
+
+    recovey_lint = f"{settings.RECOVERY_URL}/{token}"
+    email_body = render_password_recovery_email(email, recovey_lint)
+    await send_email(email, f"Password Recovery for {settings.PROJECT_NAME}", email_body)
 
 
 @logfire.instrument()
@@ -267,3 +299,49 @@ async def verify_email(token: str, session: AsyncSession) -> Token:
     await UserDAO.update(session, user_model.id, **user_model.model_dump())
     tokens = await create_tokens(session, user)
     return Token(**tokens, user_data=user_model)
+
+
+@logfire.instrument()
+async def request_user_password_recovery(
+    email: str,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession,
+) -> None:
+    """
+    Request password recovery for the user with the given email.
+
+    Create a token for password recovery and send email to the existent user.
+    """
+    user = await AuthDAO.get_one_or_none(db, email=email)
+    if user:
+        token = create_password_reset_token(email)
+        background_tasks.add_task(
+            send_password_recovery_email,
+            user.email,
+            token,
+            db,
+            user.id,
+        )
+    return None
+
+
+@logfire.instrument()
+async def reset_password(data: SPasswordRecovery, db: AsyncSession) -> None:
+    """
+    Reset user password.
+
+    Check if the token is valid and reset the password.
+    If the token is invalid, raise an exception.
+    """
+    email = verify_token(data.token, "reset")
+
+    user = await AuthDAO.get_one_or_none(db, email=email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid password reset token",
+        )
+
+    hashed_password = get_password_hash(data.new_password)
+    await UserDAO.update(db, user.id, password=hashed_password)
+    return None
