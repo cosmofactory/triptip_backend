@@ -158,65 +158,46 @@ async def get_current_user(
 
 
 @logfire.instrument()
-def create_email_verification_token(
+def create_action_token(
     email: str,
-    expires_delta: datetime.timedelta = datetime.timedelta(
-        hours=settings.EMAIL_VERIFICATION_EXPIRATION_HOURS
-    ),
+    action_type: Literal["reset", "verify"],
+    expires_delta: datetime.timedelta,
 ) -> str:
-    """Create a token for email verification."""
+    """Create a token for a specific action (email verification or password reset)."""
     payload = {
         "sub": email,
-        "verify": True,
+        action_type: True,
         "exp": datetime.datetime.now(datetime.timezone.utc) + expires_delta,
     }
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
 @logfire.instrument()
-def create_password_reset_token(
-    email: str,
-    expires_delta: datetime.timedelta = datetime.timedelta(
-        hours=settings.PASSWORD_RECOVERY_EXPIRATION_HOURS
-    ),
-) -> str:
-    """Create a token for password reset."""
-    payload = {
-        "sub": email,
-        "reset": True,
-        "exp": datetime.datetime.now(datetime.timezone.utc) + expires_delta,
-    }
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
-
-
-@logfire.instrument()
-async def send_verification_email(
+async def send_action_email(
     email: str,
     token: str,
     db: AsyncSession,
     user_id: int,
+    action_type: Literal["reset", "verify"],
 ) -> None:
-    """Send email with the verification token."""
+    """Send email with a specific action token.
+
+    Action tokens: verification token and password recovery token.
+    """
     await emails_limit_handler(db, user_id)
 
-    verification_link = f"{settings.VERIFICATION_URL}/{token}"
-    email_body = render_verification_email(email, verification_link)
-    await send_email(email, f"Email Verification for {settings.PROJECT_NAME}", email_body)
+    if action_type == "verify":
+        link = f"{settings.VERIFICATION_URL}?token={token}"
+        email_body = render_verification_email(email, link)
+        subject = f"Email Verification for {settings.PROJECT_NAME}"
+    elif action_type == "reset":
+        link = f"{settings.RECOVERY_URL}?token={token}"
+        email_body = render_password_recovery_email(email, link)
+        subject = f"Password Recovery for {settings.PROJECT_NAME}"
+    else:
+        raise ValueError("Invalid action_type for send_action_email")
 
-
-@logfire.instrument()
-async def send_password_recovery_email(
-    email: str,
-    token: str,
-    db: AsyncSession,
-    user_id: int,
-) -> None:
-    """Send email with the password recovery token."""
-    await emails_limit_handler(db, user_id)
-
-    recovey_lint = f"{settings.RECOVERY_URL}/{token}"
-    email_body = render_password_recovery_email(email, recovey_lint)
-    await send_email(email, f"Password Recovery for {settings.PROJECT_NAME}", email_body)
+    await send_email(email, subject, email_body)
 
 
 @logfire.instrument()
@@ -229,13 +210,18 @@ async def register_user(
     user = await AuthDAO.create(
         db, email=user_data.email, password=hashed_password, username=user_data.username
     )
-    token = create_email_verification_token(user_data.email)
+    token = create_action_token(
+        user_data.email,
+        action_type="verify",
+        expires_delta=datetime.timedelta(hours=settings.EMAIL_VERIFICATION_EXPIRATION_HOURS),
+    )
     background_tasks.add_task(
-        send_verification_email,
+        send_action_email,
         user_data.email,
         token,
         db,
         user.id,
+        action_type="verify",
     )
 
 
@@ -254,13 +240,18 @@ async def resend_verification_email(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User is already verified",
         )
-    verification_token = create_email_verification_token(user.email)
+    verification_token = create_action_token(
+        user.email,
+        action_type="verify",
+        expires_delta=datetime.timedelta(hours=settings.EMAIL_VERIFICATION_EXPIRATION_HOURS),
+    )
     background_tasks.add_task(
-        send_verification_email,
+        send_action_email,
         user.email,
         verification_token,
         db,
         user.id,
+        action_type="verify",
     )
     return None
 
@@ -314,13 +305,18 @@ async def request_user_password_recovery(
     """
     user = await AuthDAO.get_one_or_none(db, email=email)
     if user:
-        token = create_password_reset_token(email)
+        token = create_action_token(
+            email,
+            action_type="reset",
+            expires_delta=datetime.timedelta(hours=settings.PASSWORD_RECOVERY_EXPIRATION_HOURS),
+        )
         background_tasks.add_task(
-            send_password_recovery_email,
+            send_action_email,
             user.email,
             token,
             db,
             user.id,
+            action_type="reset",
         )
     return None
 

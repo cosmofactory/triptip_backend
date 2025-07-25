@@ -59,3 +59,13 @@ class SPasswordRecovery(BaseModel):
 
     new_password: str
     token: str
+
+
+class EmailResponse(BaseModel):
+    message: str
+    email: EmailStr
+    expires_in_hours: int
+
+
+class PasswordResetResponse(BaseModel):
+    message: str

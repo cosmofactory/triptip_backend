@@ -8,9 +8,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.auth import (
-    create_email_verification_token,
-    create_password_reset_token,
+    create_action_token,
     get_password_hash,
+    verify_password,
 )
 from src.settings.config import settings
 from src.users.dao import UserDAO
@@ -121,7 +121,7 @@ class TestAuth:
         assert user_before is not None
         assert user_before.is_verified is False
 
-        token = create_email_verification_token(email, datetime.timedelta(hours=1))
+        token = create_action_token(email, "verify", datetime.timedelta(hours=1))
 
         response = await ac.post(
             "/auth/verify",
@@ -146,7 +146,7 @@ class TestAuth:
         ],
     )
     def test_create_email_verification_token(self, email, expires_delta):
-        token = create_email_verification_token(email, expires_delta)
+        token = create_action_token(email, "verify", expires_delta)
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
 
         assert payload.get("sub") == email
@@ -236,7 +236,7 @@ class TestAuth:
         ],
     )
     def test_create_reset_token(self, email, expires_delta):
-        token = create_password_reset_token(email, expires_delta)
+        token = create_action_token(email, "reset", expires_delta)
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
 
         assert payload.get("sub") == email
@@ -338,7 +338,7 @@ class TestAuth:
         user_before = await UserDAO.get_one_or_none(session, email=email)
         assert user_before is not None
 
-        token = create_password_reset_token(email, datetime.timedelta(hours=1))
+        token = create_action_token(email, "reset", datetime.timedelta(hours=1))
 
         response = await ac.post(
             "/auth/reset_password",
@@ -353,7 +353,7 @@ class TestAuth:
         assert user_after is not None
 
         assert user_after.password != hashed
-        assert get_password_hash(new_raw_password) != hashed
+        assert verify_password(new_raw_password, user_after.password)
 
     async def test_reset_password_handler_fake_email(self, ac: AsyncClient):
         """
@@ -362,7 +362,7 @@ class TestAuth:
         Expecting 400_BAD_REQUEST with an error message.
         """
         fake_email = "fake_user@example.com"
-        fake_token = create_password_reset_token(fake_email, datetime.timedelta(hours=1))
+        fake_token = create_action_token(fake_email, "reset", datetime.timedelta(hours=1))
 
         response = await ac.post(
             "/auth/reset_password",
