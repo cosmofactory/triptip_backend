@@ -186,16 +186,17 @@ async def send_action_email(
     """
     await emails_limit_handler(db, user_id)
 
-    if action_type == "verify":
-        link = f"{settings.VERIFICATION_URL}?token={token}"
-        email_body = render_verification_email(email, link)
-        subject = f"Email Verification for {settings.PROJECT_NAME}"
-    elif action_type == "reset":
-        link = f"{settings.RECOVERY_URL}?token={token}"
-        email_body = render_password_recovery_email(email, link)
-        subject = f"Password Recovery for {settings.PROJECT_NAME}"
-    else:
-        raise ValueError("Invalid action_type for send_action_email")
+    match action_type:
+        case "verify":
+            link = f"{settings.VERIFICATION_URL}?token={token}"
+            email_body = render_verification_email(email, link)
+            subject = f"Email Verification for {settings.PROJECT_NAME}"
+        case "reset":
+            link = f"{settings.RECOVERY_URL}?token={token}"
+            email_body = render_password_recovery_email(email, link)
+            subject = f"Password Recovery for {settings.PROJECT_NAME}"
+        case _:
+            raise ValueError("Invalid action_type for send_action_email")
 
     await send_email(email, subject, email_body)
 
