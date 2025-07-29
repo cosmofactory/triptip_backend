@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "TripTip"
 
     VERIFICATION_URL: str = "https://triptip.pro/verify"
+    RECOVERY_URL: str = "https://triptip.pro/reset_password"
 
     # Test settings
     MODE: Literal["DEV", "TEST", "PROD"]
@@ -39,6 +40,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
     EMAIL_VERIFICATION_EXPIRATION_HOURS: int = 24
+    PASSWORD_RECOVERY_EXPIRATION_HOURS: int = 1
     USER_DAILY_LIMIT: int = 20
     GLOBAL_DAILY_LIMIT: int = 2000
 

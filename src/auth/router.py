@@ -9,12 +9,22 @@ from src.auth.auth import (
     create_tokens,
     get_current_user,
     register_user,
+    request_user_password_recovery,
     resend_verification_email,
+    reset_password,
     set_cookies,
     verify_email,
 )
 from src.auth.dao import AuthDAO
-from src.auth.schemas import SUserRegister, Token, VerifyTokenInput
+from src.auth.schemas import (
+    EmailResponse,
+    PasswordResetResponse,
+    SPasswordRecovery,
+    SPasswordRecoveryRequest,
+    SUserRegister,
+    Token,
+    VerifyTokenInput,
+)
 from src.database.database import SessionDep
 from src.settings.config import settings
 from src.users.schemas import SUserOutput
@@ -122,7 +132,7 @@ async def verify_email_handler(data: VerifyTokenInput, session: SessionDep) -> T
 @router.post(
     "/resend_verification",
     status_code=status.HTTP_202_ACCEPTED,
-    response_model=dict,
+    response_model=EmailResponse,
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "User is already verified"},
         status.HTTP_401_UNAUTHORIZED: {"description": "Invalid credentials"},
@@ -133,15 +143,57 @@ async def resend_verification_email_handler(
     current_user: Annotated[SUserOutput, Depends(get_current_user)],
     background_tasks: BackgroundTasks,
     db: SessionDep,
-) -> dict:
+) -> EmailResponse:
     """Resend verification email for authenticated user."""
     await resend_verification_email(
         current_user,
         background_tasks,
         db,
     )
-    return {
-        "message": "Verification email sent successfully",
-        "email": current_user.email,
-        "expires_in_hours": settings.EMAIL_VERIFICATION_EXPIRATION_HOURS,
-    }
+    return EmailResponse(
+        message="Verification email sent successfully",
+        email=current_user.email,
+        expires_in_hours=settings.EMAIL_VERIFICATION_EXPIRATION_HOURS,
+    )
+
+
+@router.post(
+    "/request_password_recovery",
+    status_code=status.HTTP_200_OK,
+    response_model=EmailResponse,
+    responses={
+        status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Email sending limit exceeded"},
+    },
+)
+async def request_password_recovery_handler(
+    request_data: SPasswordRecoveryRequest,
+    background_tasks: BackgroundTasks,
+    db: SessionDep,
+) -> EmailResponse:
+    """
+    Request password recovery for a user.
+    """
+    await request_user_password_recovery(request_data.email, background_tasks, db)
+    return EmailResponse(
+        message="Password recovery email sent successfully",
+        email=request_data.email,
+        expires_in_hours=settings.PASSWORD_RECOVERY_EXPIRATION_HOURS,
+    )
+
+
+@router.post(
+    "/reset_password",
+    status_code=status.HTTP_200_OK,
+    response_model=PasswordResetResponse,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid token"},
+    },
+)
+async def reset_password_handler(
+    data: SPasswordRecovery, session: SessionDep
+) -> PasswordResetResponse:
+    """
+    Reset password with given token.
+    """
+    await reset_password(data, session)
+    return PasswordResetResponse(message="Password reset successfully")

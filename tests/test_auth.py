@@ -7,7 +7,11 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.auth import create_email_verification_token, get_password_hash
+from src.auth.auth import (
+    create_action_token,
+    get_password_hash,
+    verify_password,
+)
 from src.settings.config import settings
 from src.users.dao import UserDAO
 
@@ -117,7 +121,7 @@ class TestAuth:
         assert user_before is not None
         assert user_before.is_verified is False
 
-        token = create_email_verification_token(email, datetime.timedelta(hours=1))
+        token = create_action_token(email, "verify", datetime.timedelta(hours=1))
 
         response = await ac.post(
             "/auth/verify",
@@ -142,7 +146,7 @@ class TestAuth:
         ],
     )
     def test_create_email_verification_token(self, email, expires_delta):
-        token = create_email_verification_token(email, expires_delta)
+        token = create_action_token(email, "verify", expires_delta)
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
 
         assert payload.get("sub") == email
@@ -221,4 +225,148 @@ class TestAuth:
         response = await ac.post("/auth/resend_verification")
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert "detail" in response.json()
+
+    @pytest.mark.parametrize(
+        "email, expires_delta",
+        [
+            ("test@example.com", datetime.timedelta(hours=1)),
+            ("user@domain.com", datetime.timedelta(hours=2)),
+            ("another@example.com", datetime.timedelta(hours=3)),
+        ],
+    )
+    def test_create_reset_token(self, email, expires_delta):
+        token = create_action_token(email, "reset", expires_delta)
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+        assert payload.get("sub") == email
+        assert payload.get("reset") is True
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        token_exp = datetime.datetime.fromtimestamp(payload.get("exp"), tz=datetime.timezone.utc)
+
+        expected_exp = now + expires_delta
+        time_difference = abs((token_exp - expected_exp).total_seconds())
+        assert time_difference < 2, f"Expiration delta {time_difference} exceeded allowed tolerance"
+
+    async def test_request_password_recovery_handler(
+        self,
+        ac: AsyncClient,
+        session: AsyncSession,
+        mock_email_service,
+    ):
+        """
+        Test password recovery request endpoint.
+
+        1. Create a user.
+        2. Request password recovery for existing user
+        3. Ensure 200_OK with success message.
+        """
+        email = "recovery_test@example.com"
+        raw_password = "RecoveryPass123"
+        hashed = get_password_hash(raw_password)
+        await UserDAO.create(
+            session,
+            email=email,
+            username="RecoveryUser",
+            password=hashed,
+            bio="RequestBio",
+        )
+
+        user = await UserDAO.get_one_or_none(session, email=email)
+        assert user is not None
+
+        response = await ac.post(
+            "/auth/request_password_recovery",
+            json={"email": email},
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_data = response.json()
+        assert response_data["message"] == "Password recovery email sent successfully"
+        assert response_data["email"] == user.email
+        assert "expires_in_hours" in response_data
+
+    async def test_request_password_recovery_handler_non_existing_user(
+        self,
+        ac: AsyncClient,
+        mock_email_service,
+    ):
+        """
+        Test password recovery request for non-existing user.
+
+        Expecting 200_OK response with a success message.
+        No reset token should be generated or sent.
+        """
+        non_existent_email = "nonexistent@example.com"
+        response = await ac.post(
+            "/auth/request_password_recovery",
+            json={"email": non_existent_email},
+        )
+        assert response.status_code == HTTPStatus.OK
+
+        response_data = response.json()
+
+        assert response_data["message"] == "Password recovery email sent successfully"
+        assert response_data["email"] == non_existent_email
+        assert "expires_in_hours" in response_data
+
+    async def test_reset_password_handler(
+        self,
+        ac: AsyncClient,
+        session: AsyncSession,
+    ):
+        """
+        Test password reset endpoint.
+
+        1. Create a user.
+        2. Generate a valid reset token for the user.
+        3. Reset password with valid token.
+        4. Ensure 200_OK with success message
+        """
+        email = "reset_test@example.com"
+        old_raw_password = "OldPassTest123"
+        new_raw_password = "NewPassTest456"
+        hashed = get_password_hash(old_raw_password)
+        await UserDAO.create(
+            session,
+            email=email,
+            username="ResetUser",
+            password=hashed,
+            bio="ResetBio",
+        )
+        user_before = await UserDAO.get_one_or_none(session, email=email)
+        assert user_before is not None
+
+        token = create_action_token(email, "reset", datetime.timedelta(hours=1))
+
+        response = await ac.post(
+            "/auth/reset_password",
+            json={"token": token, "new_password": new_raw_password},
+        )
+        assert response.status_code == HTTPStatus.OK
+
+        response_data = response.json()
+        assert response_data["message"] == "Password reset successfully"
+
+        user_after = await UserDAO.get_one_or_none(session, email=email)
+        assert user_after is not None
+
+        assert user_after.password != hashed
+        assert verify_password(new_raw_password, user_after.password)
+
+    async def test_reset_password_handler_fake_email(self, ac: AsyncClient):
+        """
+        Test password reset endpoint with fake email.
+
+        Expecting 400_BAD_REQUEST with an error message.
+        """
+        fake_email = "fake_user@example.com"
+        fake_token = create_action_token(fake_email, "reset", datetime.timedelta(hours=1))
+
+        response = await ac.post(
+            "/auth/reset_password",
+            json={"token": fake_token, "new_password": "WhateverPass123"},
+        )
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         assert "detail" in response.json()
