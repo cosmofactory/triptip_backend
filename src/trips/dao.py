@@ -11,15 +11,13 @@ class TripDAO(BaseDAO):
 
     model = Trip
 
-    @classmethod
-    async def get_all_trips(cls, db: AsyncSession, limit: int) -> list[Trip]:
+    async def get_all_trips(self, limit: int) -> list[Trip]:
         """Get list of trips joined with authors."""
         query = select(Trip).options(joinedload(Trip.author)).limit(limit)
-        result = await db.execute(query)
+        result = await self.db.execute(query)
         return result.unique().scalars().all()
 
-    @classmethod
-    async def get_all_and_count(cls, db: AsyncSession, **filter_params):
+    async def get_all_and_count(self, **filter_params):
         """
         Get all objects from the table with total number of objects.
 
@@ -27,8 +25,8 @@ class TripDAO(BaseDAO):
         If filter_params are provided, filter the objects by the given parameters.
         """
         total_count = func.count().over().label("total_count")
-        query = select(cls.model.__table__.columns, total_count).filter_by(**filter_params)
-        result = await db.execute(query)
+        query = select(self.model.__table__.columns, total_count).filter_by(**filter_params)
+        result = await self.db.execute(query)
         return result.mappings().all()
 
 

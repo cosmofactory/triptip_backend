@@ -13,9 +13,8 @@ class AuthDAO(BaseDAO):
 class RefreshTokenDAO(BaseDAO):
     model = RefreshToken
 
-    @classmethod
-    async def get_last_token(cls, db: AsyncSession, user_id: int, order_by, limit: int) -> dict:
+    async def get_last_token(self, user_id: int, order_by, limit: int) -> dict:
         """Get the last token for the user based on the order_by column."""
-        query = select(cls.model.__table__.columns).order_by(desc(order_by)).limit(limit)
-        result = await db.execute(query)
+        query = select(self.model.__table__.columns).order_by(desc(order_by)).limit(limit)
+        result = await self.db.execute(query)
         return result.mappings().one_or_none()
