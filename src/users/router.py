@@ -6,6 +6,7 @@ from src.auth.auth import get_current_user
 from src.database.database import SessionDep
 from src.trips.schemas import STripListOutput
 from src.users.schemas import SUserNotFound, SUserOutput
+from src.subscriptions.schemas import SubscriptionOutput
 from src.users.service import UserService
 from src.utils.dependencies import upload_image
 from src.utils.exceptions import SErrorResponse
@@ -63,3 +64,47 @@ async def userpic_upload(
 @router.get("/{user_id}/trips")
 async def get_user_trips(user_id: int, db: SessionDep) -> STripListOutput:
     return await UserService.get_user_trips(db, user_id)
+
+
+@router.post(
+    "/profile/{user_id}/follow",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=SubscriptionOutput,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Can't follow yourself"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Already following this user"},
+    },
+)
+async def follow_user(
+    current_user: Annotated[SUserOutput, Depends(get_current_user)],
+    user_id: int,
+    db: SessionDep,
+) -> SubscriptionOutput:
+    """Follow user."""
+    subs_info = await UserService.follow_to_current_user(db, current_user, user_id)
+    return SubscriptionOutput(**subs_info)
+
+
+@router.delete(
+    "/profile/{user_id}/follow",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Can't unfollow yourself"},  
+    },
+)
+async def unfollow_user(
+    current_user: Annotated[SUserOutput, Depends(get_current_user)],
+    user_id: int,
+    db: SessionDep,
+) -> None:
+    """Unfollow user."""
+    await UserService.unfollow_current_user(db, current_user, user_id)
+    return None
+
+
+
+@router.get("/profile/{user_id}/followings")
+async def get_user_followings(user_id: int, db: SessionDep) -> list[SUserOutput]:
+    """Get all user's followings."""
+    result = await UserService.get_all_followings(db, user_id)
+    return result

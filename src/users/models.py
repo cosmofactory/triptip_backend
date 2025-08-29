@@ -9,6 +9,7 @@ from src.database.models import TimeStampModel
 if TYPE_CHECKING:
     from src.auth.models import RefreshToken
     from src.trips.models import Route, Trip
+    from src.subscriptions.models import Subscriptions
 
 
 class User(TimeStampModel):
@@ -43,6 +44,18 @@ class User(TimeStampModel):
         "RefreshToken",
         cascade="all, delete",
         back_populates="user",
+    )
+    #List of users that current user is subscribed to
+    followings: Mapped[List["Subscriptions"]] = relationship(
+        "Subscriptions",
+        back_populates="follower",
+        foreign_keys="[Subscriptions.follower_id]",
+    )
+    #List of users that subscribe to current user
+    followers: Mapped[List["Subscriptions"]] = relationship(
+        "Subscriptions",
+        back_populates="followee",
+        foreign_keys="[Subscriptions.followee_id]",
     )
 
     def __repr__(self) -> str:
