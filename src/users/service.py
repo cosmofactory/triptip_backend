@@ -1,14 +1,13 @@
 from typing import List
 
-from fastapi import HTTPException, status
-
 import logfire
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.subscriptions.dao import SubscriptionDAO
 from src.trips.dao import TripDAO
 from src.trips.schemas import STripListOutput
 from src.users.dao import UserDAO
-from src.subscriptions.dao import SubscriptionDAO
 from src.users.schemas import SUserOutput
 
 
@@ -50,7 +49,7 @@ class UserService:
     ) -> dict:
         """
         Follow to user if not followed. If followed, raise an error.
-        
+
         Make sure that you cannot follow yourself.
         """
         followee = await UserDAO.get_object_or_404(db, id=followee_id)
@@ -74,8 +73,12 @@ class UserService:
             follower_id=current_user.id,
             followee_id=followee.id,
         )
-        return {"id": new_subscription.id, "follower_id": current_user.id, "followee_id": followee.id}
-    
+        return {
+            "id": new_subscription.id,
+            "follower_id": current_user.id,
+            "followee_id": followee.id,
+        }
+
     @staticmethod
     async def unfollow_current_user(
         db: AsyncSession,
@@ -84,7 +87,7 @@ class UserService:
     ) -> None:
         """
         Unfollow user.
-        
+
         Make sure that you cannot unfollow yourself.
         """
         followee = await UserDAO.get_object_or_404(db, id=followee_id)
@@ -102,13 +105,14 @@ class UserService:
             return None
         await SubscriptionDAO.delete(db, subscription["id"])
         return None
-    
+
     @staticmethod
     async def get_all_followings(
         db: AsyncSession,
         user_id: int,
     ) -> List[SUserOutput]:
-        subscriptions = await SubscriptionDAO.get_all(db, follower_id=user_id)
+        user = await UserDAO.get_object_or_404(db, id=user_id)
+        subscriptions = await SubscriptionDAO.get_all(db, follower_id=user.id)
         followee_ids = [row["followee_id"] for row in subscriptions]
         if not followee_ids:
             return []

@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
 from src.database.database import SessionDep
+from src.subscriptions.schemas import SubscriptionOutput
 from src.trips.schemas import STripListOutput
 from src.users.schemas import SUserNotFound, SUserOutput
-from src.subscriptions.schemas import SubscriptionOutput
 from src.users.service import UserService
 from src.utils.dependencies import upload_image
 from src.utils.exceptions import SErrorResponse
@@ -73,6 +73,7 @@ async def get_user_trips(user_id: int, db: SessionDep) -> STripListOutput:
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Can't follow yourself"},
         status.HTTP_400_BAD_REQUEST: {"description": "Already following this user"},
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
 )
 async def follow_user(
@@ -89,7 +90,8 @@ async def follow_user(
     "/profile/{user_id}/follow",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
-        status.HTTP_400_BAD_REQUEST: {"description": "Can't unfollow yourself"},  
+        status.HTTP_400_BAD_REQUEST: {"description": "Can't unfollow yourself"},
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
 )
 async def unfollow_user(
@@ -102,8 +104,13 @@ async def unfollow_user(
     return None
 
 
-
-@router.get("/profile/{user_id}/followings")
+@router.get(
+    "/profile/{user_id}/followings",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+    },
+)
 async def get_user_followings(user_id: int, db: SessionDep) -> list[SUserOutput]:
     """Get all user's followings."""
     result = await UserService.get_all_followings(db, user_id)
