@@ -7,6 +7,8 @@ from src.database.database import Base, DATABASE_URL
 from src.users.models import User
 from src.auth.models import RefreshToken
 from src.trips.models import Trip, Location, Route, Highlight
+from src.emails.models import Emails
+from src.subscriptions.models import Subscriptions
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
