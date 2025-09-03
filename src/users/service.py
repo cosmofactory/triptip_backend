@@ -42,41 +42,38 @@ class UserService:
         return STripListOutput(trips=trips, total_count=0)
 
     @staticmethod
-    async def follow_to_current_user(
+    async def follow_current_user(
         db: AsyncSession,
         current_user: SUserOutput,
         followee_id: int,
     ) -> dict:
         """
-        Follow to user if not followed. If followed, raise an error.
+        Follow user if not followed. If followed, raise an error.
 
         Make sure that you cannot follow yourself.
         """
-        followee = await UserDAO.get_object_or_404(db, id=followee_id)
-        if current_user.id == followee.id:
+        if current_user.id == followee_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cannot follow yourself",
             )
-        subscription = await SubscriptionDAO.get_one_or_none(
-            db,
-            follower_id=current_user.id,
-            followee_id=followee.id,
-        )
-        if subscription:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You are already following this user",
+        try:
+            subscription = await SubscriptionDAO.create(
+                db,
+                follower_id=current_user.id,
+                followee_id=followee_id,
             )
-        new_subscription = await SubscriptionDAO.create(
-            db,
-            follower_id=current_user.id,
-            followee_id=followee.id,
-        )
+        except HTTPException as e:
+            if e.status_code == status.HTTP_400_BAD_REQUEST:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User does not exist or already followed",
+                ) from e
+            raise
         return {
-            "id": new_subscription.id,
+            "id": subscription.id,
             "follower_id": current_user.id,
-            "followee_id": followee.id,
+            "followee_id": followee_id,
         }
 
     @staticmethod
@@ -90,20 +87,20 @@ class UserService:
 
         Make sure that you cannot unfollow yourself.
         """
-        followee = await UserDAO.get_object_or_404(db, id=followee_id)
-        if current_user.id == followee.id:
+        if current_user.id == followee_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cannot unfollow yourself",
             )
+
         subscription = await SubscriptionDAO.get_one_or_none(
             db,
             follower_id=current_user.id,
-            followee_id=followee.id,
+            followee_id=followee_id,
         )
         if subscription is None:
             return None
-        await SubscriptionDAO.delete(db, subscription["id"])
+        await SubscriptionDAO.delete(db, subscription.id)
         return None
 
     @staticmethod
@@ -111,10 +108,13 @@ class UserService:
         db: AsyncSession,
         user_id: int,
     ) -> List[SUserOutput]:
-        user = await UserDAO.get_object_or_404(db, id=user_id)
-        subscriptions = await SubscriptionDAO.get_all(db, follower_id=user.id)
-        followee_ids = [row["followee_id"] for row in subscriptions]
+        subscriptions = await SubscriptionDAO.get_all(db, follower_id=user_id)
+        if not subscriptions:
+            return []
+
+        followee_ids = [row.followee_id for row in subscriptions]
         if not followee_ids:
             return []
+
         users = await SubscriptionDAO.find_by_user_id(db, followee_ids)
         return [SUserOutput.model_validate(user) for user in users]

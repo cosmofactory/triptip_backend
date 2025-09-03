@@ -71,9 +71,9 @@ async def get_user_trips(user_id: int, db: SessionDep) -> STripListOutput:
     status_code=status.HTTP_202_ACCEPTED,
     response_model=SubscriptionOutput,
     responses={
-        status.HTTP_400_BAD_REQUEST: {"description": "Can't follow yourself"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Already following this user"},
-        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Can't follow yourself or already following this user"
+        },
     },
 )
 async def follow_user(
@@ -82,7 +82,7 @@ async def follow_user(
     db: SessionDep,
 ) -> SubscriptionOutput:
     """Follow user."""
-    subs_info = await UserService.follow_to_current_user(db, current_user, user_id)
+    subs_info = await UserService.follow_current_user(db, current_user, user_id)
     return SubscriptionOutput(**subs_info)
 
 
