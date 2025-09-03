@@ -1,8 +1,10 @@
 from typing import List
 
 import logfire
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.subscriptions.dao import SubscriptionDAO
 from src.trips.dao import TripDAO
 from src.trips.schemas import STripListOutput
 from src.users.dao import UserDAO
@@ -38,3 +40,81 @@ class UserService:
             total_count = trips[0].get("total_count", 0)
             return STripListOutput(trips=trips, total_count=total_count)
         return STripListOutput(trips=trips, total_count=0)
+
+    @staticmethod
+    async def follow_current_user(
+        db: AsyncSession,
+        current_user: SUserOutput,
+        followee_id: int,
+    ) -> dict:
+        """
+        Follow user if not followed. If followed, raise an error.
+
+        Make sure that you cannot follow yourself.
+        """
+        if current_user.id == followee_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot follow yourself",
+            )
+        try:
+            subscription = await SubscriptionDAO.create(
+                db,
+                follower_id=current_user.id,
+                followee_id=followee_id,
+            )
+        except HTTPException as e:
+            if e.status_code == status.HTTP_400_BAD_REQUEST:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User does not exist or already followed",
+                ) from e
+            raise
+        return {
+            "id": subscription.id,
+            "follower_id": current_user.id,
+            "followee_id": followee_id,
+        }
+
+    @staticmethod
+    async def unfollow_current_user(
+        db: AsyncSession,
+        current_user: SUserOutput,
+        followee_id: int,
+    ) -> None:
+        """
+        Unfollow user.
+
+        Make sure that you cannot unfollow yourself.
+        """
+        if current_user.id == followee_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot unfollow yourself",
+            )
+
+        subscription = await SubscriptionDAO.get_one_or_none(
+            db,
+            follower_id=current_user.id,
+            followee_id=followee_id,
+        )
+        if subscription is None:
+            return None
+        await SubscriptionDAO.delete(db, subscription.id)
+        return None
+
+    @staticmethod
+    async def get_all_followings(
+        db: AsyncSession,
+        user_id: int,
+    ) -> List[SUserOutput]:
+        subscriptions = await SubscriptionDAO.get_all(db, follower_id=user_id)
+        if not subscriptions:
+            return []
+
+        followee_ids = [row.followee_id for row in subscriptions]
+        if not followee_ids:
+            return []
+
+        users = await SubscriptionDAO.find_by_user_id(db, followee_ids)
+        return [SUserOutput.model_validate(user) for user in users]
