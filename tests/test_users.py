@@ -124,7 +124,7 @@ class TestUsers:
         """
         Expected 400_BAD_REQUEST while attempting to unfollow yourself.
         """
-        user_id = authenticated_ac.user.id
+        user_id = authenticated_ac.id
         assert user_id is not None
 
         response = await authenticated_ac.delete(f"/users/profile/{user_id}/follow")
@@ -143,7 +143,7 @@ class TestUsers:
         3. Verify they appear.
         4. Unfollow and verify removal.
         """
-        user_id = authenticated_ac.user.id
+        user_id = authenticated_ac.id
         assert user_id is not None
 
         response_1 = await authenticated_ac.get(f"/users/profile/{user_id}/followings")
