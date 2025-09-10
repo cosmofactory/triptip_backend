@@ -8,6 +8,7 @@ from src.database.models import TimeStampModel
 from src.settings.enums import RegionEnum
 
 if TYPE_CHECKING:
+    from src.comments.models import Comment
     from src.users.models import User
 
 
@@ -34,6 +35,14 @@ class Trip(TimeStampModel):
         back_populates="trip",
         cascade="all, delete-orphan",
         lazy="joined",
+    )
+
+    comments: Mapped[List["Comment"]] = relationship(
+        "Comment",
+        back_populates="trip",
+        foreign_keys="[Comment.trip_id]",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:

@@ -8,6 +8,7 @@ import factory
 import factory.fuzzy
 from pydantic import BaseModel, Field
 
+from src.comments.dao import CommentDAO
 from src.settings.enums import RegionEnum
 from src.trips.dao import HighlightDAO, LocationDAO, RouteDAO, TripDAO
 from tests.factories.base_factory import AsyncFactory
@@ -55,6 +56,19 @@ class LocationFactory(AsyncFactory):
     description = factory.fuzzy.FuzzyText(length=100)
     trip_id = None
     sequence_id = factory.LazyFunction(lambda: next(sequence_id_generator))
+
+
+class CommentCreationFactory(BaseModel):
+    text: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+
+
+class CommentFactory(AsyncFactory):
+    class Meta:
+        model = CommentDAO
+
+    trip_id = None
+    author_id = None
+    text = factory.fuzzy.FuzzyText(length=100)
 
 
 class TripWith3LocationsFactory(TripFactory):
