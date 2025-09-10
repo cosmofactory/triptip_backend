@@ -20,7 +20,7 @@ class CommentService:
         comment_data = comment_data.model_dump()
         comment_data["trip_id"] = trip_id
         comment_data["author_id"] = author_id
-        comment_data["text"] = SCommentInput.text.strip()
+        comment_data["text"] = comment_data["text"].strip()
         created_comment = await CommentDAO.create(db, **comment_data)
         return created_comment
 
