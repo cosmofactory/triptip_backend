@@ -3,6 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from src.auth.auth import get_current_user
+from src.comments.dao import CommentDAO
+from src.comments.schemas import SCommentInput, SCommentOutput
+from src.comments.service import CommentService
 from src.database.database import SessionDep
 from src.settings.enums import HighlightEnum
 from src.trips.dao import LocationDAO, RouteDAO, TripDAO
@@ -242,3 +245,68 @@ async def get_highlight(
     """Get highlight"""
     highlights = await TripService.get_highlight(db, highlight_id)
     return highlights
+
+
+@router.post(
+    "/{trip_id}/comments",
+    status_code=status.HTTP_201_CREATED,
+    response_model=SCommentOutput,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+        status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
+    },
+)
+async def create_comment(
+    trip_id: int,
+    comment: SCommentInput,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> SCommentOutput:
+    """Create a new comment under the trip record."""
+    trip = await TripService.get_trip(db, trip_id)
+    created_comment = await CommentService.create_comment(db, trip.id, user.id, comment)
+    return created_comment
+
+
+@router.get(
+    "/{trip_id}/comments",
+    response_model=list[SCommentOutput],
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
+    },
+)
+async def get_comments(
+    trip_id: int,
+    db: SessionDep,
+) -> list[SCommentOutput]:
+    """Get all comments under the trip record."""
+    comments = await CommentService.get_comments(db, trip_id)
+    return comments
+
+
+@router.delete(
+    "/{trip_id}/comments/{comment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+        status.HTTP_403_FORBIDDEN: {"description": "User is not the author of the comment"},
+        status.HTTP_404_NOT_FOUND: {"description": "Comment not found"},
+    },
+)
+async def delete_comment(
+    trip_id: int,
+    comment_id: int,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> None:
+    """
+    Delete an existing comment under the trip.
+
+    Only comment author can delete a comment.
+    """
+    await TripService.get_trip(db, trip_id=trip_id)
+
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(comment_id, CommentDAO, user)
+    await CommentService.delete_comment(db, comment_id)
+    return None

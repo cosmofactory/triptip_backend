@@ -5,9 +5,11 @@ from httpx import AsyncClient
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.comments.dao import CommentDAO
 from src.trips.dao import LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
+    CommentCreationFactory,
     HighlightFactory,
     LocationCreationFactory,
     LocationFactory,
@@ -389,3 +391,124 @@ class TestHighlights:
         response = await authenticated_ac.get(f"/trips/highlight/{highlight.id}")
         assert response.status_code == HTTPStatus.OK
         assert response.json()["location_id"] == location.id
+
+
+class TestComments:
+    async def test_comment_creation(
+        self,
+        authenticated_ac: AsyncClient,
+        create_trip: TripFactory,
+    ):
+        """
+        Test comment creation endpoint.
+
+        Expecting 201_CREATED and correct payload for authorized user.
+        """
+        trip = create_trip
+        comment = CommentCreationFactory()
+        response = await authenticated_ac.post(
+            f"/trips/{trip.id}/comments", json=comment.model_dump()
+        )
+        assert response.status_code == HTTPStatus.CREATED
+
+        response_data = response.json()
+        assert response_data["text"] == comment.text
+        assert response_data["trip_id"] == trip.id
+        assert "author_id" in response_data
+
+    async def test_create_comment_unauthenticated(self, ac: AsyncClient, create_trip: TripFactory):
+        """
+        Test that unauthenticated user cannot create a comment.
+
+        Expecting 401_UNAUTHORIZED for a non-authorized user.
+        """
+        trip = create_trip
+        comment = CommentCreationFactory()
+        response = await ac.post(f"/trips/{trip.id}/comments", json=comment.model_dump())
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    async def test_get_comments(
+        self,
+        ac: AsyncClient,
+        authenticated_ac: AsyncClient,
+        authenticated_ac_2: AsyncClient,
+        create_trip: TripFactory,
+    ):
+        """
+        Test getting list of comments for a trip.
+
+        1. Get an empty list of comments when they do not exist.
+        2. Create comments from two different users and verify that they are returned.
+        """
+        trip = create_trip
+
+        empty_response = await ac.get(f"/trips/{trip.id}/comments")
+        assert empty_response.status_code == HTTPStatus.OK
+        assert empty_response.json() == []
+
+        comment_1 = CommentCreationFactory()
+        comment_2 = CommentCreationFactory()
+
+        response_1 = await authenticated_ac.post(
+            f"/trips/{trip.id}/comments", json=comment_1.model_dump()
+        )
+        assert response_1.status_code == HTTPStatus.CREATED
+
+        response_2 = await authenticated_ac_2.post(
+            f"/trips/{trip.id}/comments", json=comment_2.model_dump()
+        )
+        assert response_2.status_code == HTTPStatus.CREATED
+
+        response = await ac.get(f"/trips/{trip.id}/comments")
+        assert response.status_code == HTTPStatus.OK
+
+        response_data = response.json()
+        comments = {data["text"] for data in response_data}
+        assert comment_1.text in comments and comment_2.text in comments
+
+    async def test_delete_comment_authorization(
+        self,
+        authenticated_ac: AsyncClient,
+        authenticated_ac_2: AsyncClient,
+        session: AsyncSession,
+        create_trip: TripFactory,
+    ):
+        """
+        Test delete comment endpoint.
+
+        1. Non-comment-author cannot delete comment - expecting 403_FORBIDDEN
+        2. Only comment-author can delete comment - expecting 204_NO_CONTENT
+        """
+        trip = create_trip
+        new_comment = CommentCreationFactory()
+
+        create_response = await authenticated_ac.post(
+            f"/trips/{trip.id}/comments", json=new_comment.model_dump()
+        )
+        assert create_response.status_code == HTTPStatus.CREATED
+
+        comment_id = create_response.json()["id"]
+
+        forbidden_response = await authenticated_ac_2.delete(
+            f"/trips/{trip.id}/comments/{comment_id}"
+        )
+        assert forbidden_response.status_code == HTTPStatus.FORBIDDEN
+
+        response_delete = await authenticated_ac.delete(f"/trips/{trip.id}/comments/{comment_id}")
+        assert response_delete.status_code == HTTPStatus.NO_CONTENT
+
+        from_db = await CommentDAO.get_one_or_none(session, id=comment_id)
+        assert from_db is None
+
+    async def test_delete_comment_non_existent(
+        self, authenticated_ac: AsyncClient, create_trip: TripFactory
+    ):
+        """
+        Test deleting a non-existent comment.
+
+        Expecting 404_NOT_FOUND.
+        """
+        trip = create_trip
+        non_existent_id = 999999
+        response = await authenticated_ac.delete(f"/trips/{trip.id}/comments/{non_existent_id}")
+        assert response.status_code == HTTPStatus.NOT_FOUND

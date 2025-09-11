@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.settings.config import settings
 from tests.factories.aws_config import mock_aio_aws
 from tests.factories.trips_factories import (
+    CommentFactory,
     HighlightFactory,
     LocationFactory,
     RouteCreationFactory,
@@ -47,6 +48,13 @@ async def create_location(session: AsyncSession, create_trip: TripFactory):
     trip = create_trip
     location = await LocationFactory.create(db=session, trip_id=trip.id)
     return location
+
+
+@pytest.fixture(scope="function")
+async def create_comment(session: AsyncSession, create_trip: TripFactory):
+    trip = create_trip
+    comment = await CommentFactory.create(db=session, trip_id=trip.id)
+    return comment
 
 
 @pytest.fixture(scope="function")
