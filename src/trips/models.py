@@ -9,6 +9,7 @@ from src.settings.enums import RegionEnum
 
 if TYPE_CHECKING:
     from src.comments.models import Comment
+    from src.likes.models import Like
     from src.users.models import User
 
 
@@ -41,6 +42,14 @@ class Trip(TimeStampModel):
         "Comment",
         back_populates="trip",
         foreign_keys="[Comment.trip_id]",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    likes: Mapped[List["Like"]] = relationship(
+        "Like",
+        back_populates="trip",
+        foreign_keys="[Like.trip_id]",
         cascade="all, delete-orphan",
         lazy="selectin",
     )

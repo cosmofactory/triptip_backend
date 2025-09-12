@@ -124,4 +124,5 @@ async def authenticated_ac_2(ac, session):
         assert ac.cookies.get("access_token") is not None
         assert ac.cookies.get("refresh_token") is not None
         ac.user = user
+        ac.id = user.id
         yield ac

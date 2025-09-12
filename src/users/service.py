@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Literal
 
 import logfire
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.likes.dao import LikeDAO
 from src.subscriptions.dao import SubscriptionDAO
 from src.trips.dao import TripDAO
 from src.trips.schemas import STripListOutput
@@ -104,17 +105,34 @@ class UserService:
         return None
 
     @staticmethod
-    async def get_all_followings(
-        db: AsyncSession,
-        user_id: int,
+    async def get_all_related_users(
+        db: AsyncSession, type_id: int, relation_type: Literal["subscription", "like"]
     ) -> List[SUserOutput]:
-        subscriptions = await SubscriptionDAO.get_all(db, follower_id=user_id)
-        if not subscriptions:
-            return []
+        """
+        Get all users related to the given user based on the relation type.
+        """
+        match relation_type:
+            case "subscription":
+                subscriptions = await SubscriptionDAO.get_all(db, follower_id=type_id)
+                if not subscriptions:
+                    return []
 
-        followee_ids = [row.followee_id for row in subscriptions]
-        if not followee_ids:
-            return []
+                related_ids = [row.followee_id for row in subscriptions]
+                if not related_ids:
+                    return []
+            case "like":
+                likes = await LikeDAO.get_all(db, trip_id=type_id)
+                if not likes:
+                    return []
 
-        users = await SubscriptionDAO.find_by_user_id(db, followee_ids)
+                related_ids = [row.author_id for row in likes]
+                if not related_ids:
+                    return []
+            case _:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid relation_type for getting all related",
+                )
+
+        users = await UserDAO.find_by_ids(db, related_ids)
         return [SUserOutput.model_validate(user) for user in users]

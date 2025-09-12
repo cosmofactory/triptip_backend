@@ -10,6 +10,7 @@ from src.trips.models import Trip, Location, Route, Highlight
 from src.emails.models import Emails
 from src.subscriptions.models import Subscriptions
 from src.comments.models import Comment
+from src.likes.models import Like
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

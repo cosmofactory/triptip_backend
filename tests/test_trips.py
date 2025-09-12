@@ -512,3 +512,139 @@ class TestComments:
         non_existent_id = 999999
         response = await authenticated_ac.delete(f"/trips/{trip.id}/comments/{non_existent_id}")
         assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+class TestLikes:
+    async def test_like_posting(self, authenticated_ac: AsyncClient, create_trip: TripFactory):
+        """
+        Test like posting endpoint.
+
+        Expecting 201_CREATED and correct payload for authorized user.
+        """
+        trip = create_trip
+        response = await authenticated_ac.post(f"/trips/{trip.id}/like")
+        assert response.status_code == HTTPStatus.CREATED
+
+        response_data = response.json()
+        assert response_data["author_id"] == authenticated_ac.id
+        assert response_data["trip_id"] == trip.id
+
+    async def test_like_posting_unauthenticated(self, ac: AsyncClient, create_trip: TripFactory):
+        """
+        Test that unauthenticated user cannot like a trip.
+
+        Expecting 401_UNAUTHORIZED for a non-authorized user.
+        """
+        trip = create_trip
+        response = await ac.post(f"/trips/{trip.id}/like")
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    async def test_like_non_existent_trip(self, authenticated_ac: AsyncClient):
+        """
+        Test to like a non-existent trip.
+
+        Expecting 404_NOT_FOUND for a non-existent trip ID.
+        """
+        non_existent_id = 999999
+        response = await authenticated_ac.post(f"/trips/{non_existent_id}/like")
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    async def test_get_likes(
+        self,
+        ac: AsyncClient,
+        authenticated_ac: AsyncClient,
+        authenticated_ac_2: AsyncClient,
+        create_trip: TripFactory,
+    ):
+        """
+        Test getting list of users who liked a trip.
+
+        1. Get an empty list of likes when nobody liked a trip.
+        2. Post a like from two different users and verify that they are returned.
+        """
+        trip = create_trip
+
+        empty_response = await ac.get(f"/trips/{trip.id}/like")
+        assert empty_response.status_code == HTTPStatus.OK
+        assert empty_response.json() == []
+
+        response_1 = await authenticated_ac.post(f"/trips/{trip.id}/like")
+        assert response_1.status_code == HTTPStatus.CREATED
+
+        response_2 = await authenticated_ac_2.post(f"/trips/{trip.id}/like")
+        assert response_2.status_code == HTTPStatus.CREATED
+
+        response = await ac.get(f"/trips/{trip.id}/like")
+        assert response.status_code == HTTPStatus.OK
+
+        response_data = response.json()
+        likes_ids = {data["id"] for data in response_data}
+        expected_ids = {
+            authenticated_ac.id,
+            authenticated_ac_2.id,
+        }
+        assert expected_ids == likes_ids
+
+    async def test_get_likes_non_existent_trip(self, ac: AsyncClient):
+        """
+        Test getting likes for a non-existent trip.
+
+        Expecting 404_NOT_FOUND for a non-existent trip ID.
+        """
+        non_existent_id = 999999
+        response = await ac.get(f"/trips/{non_existent_id}/like")
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    async def test_unlike_trip(
+        self,
+        ac: AsyncClient,
+        authenticated_ac: AsyncClient,
+        create_trip: TripFactory,
+    ):
+        """
+        Test unlike trip endpoint.
+
+        1. Check if the likes list is empty.
+        2. Post a like from the authenticated user.
+        3. Ensure that trip is liked.
+        4. Unlike current trip and verify that the likes list is empty again.
+        """
+        trip = create_trip
+
+        empty_response = await ac.get(f"/trips/{trip.id}/like")
+        assert empty_response.status_code == HTTPStatus.OK
+        assert empty_response.json() == []
+
+        post_response = await authenticated_ac.post(f"/trips/{trip.id}/like")
+        assert post_response.status_code == HTTPStatus.CREATED
+
+        check_reponse = await ac.get(f"/trips/{trip.id}/like")
+        assert check_reponse.status_code == HTTPStatus.OK
+        assert len(check_reponse.json()) == 1
+
+        delete_response = await authenticated_ac.delete(f"/trips/{trip.id}/like")
+        assert delete_response.status_code == HTTPStatus.NO_CONTENT
+
+        get_response = await ac.get(f"/trips/{trip.id}/like")
+        assert get_response.status_code == HTTPStatus.OK
+        assert get_response.json() == []
+
+    async def test_unlike_unauthenticated(self, ac: AsyncClient, create_trip: TripFactory):
+        """
+        Test that unauthenticated user cannot unlike a trip.
+
+        Expecting 401_UNAUTHORIZED for a non-authorized user.
+        """
+        trip = create_trip
+        response = await ac.delete(f"/trips/{trip.id}/like")
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    async def test_unlike_non_existent_trip(self, authenticated_ac: AsyncClient):
+        """
+        Test unliking a non-existent trip.
+
+        Expecting 404_NOT_FOUND for a non-existent trip ID.
+        """
+        non_existent_id = 999999
+        response = await authenticated_ac.delete(f"/trips/{non_existent_id}/like")
+        assert response.status_code == HTTPStatus.NOT_FOUND

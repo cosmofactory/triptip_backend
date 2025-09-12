@@ -113,5 +113,9 @@ async def unfollow_user(
 )
 async def get_user_followings(user_id: int, db: SessionDep) -> list[SUserOutput]:
     """Get all user's followings."""
-    result = await UserService.get_all_followings(db, user_id)
+    result = await UserService.get_all_related_users(
+        db=db,
+        type_id=user_id,
+        relation_type="subscription",
+    )
     return result
