@@ -566,7 +566,7 @@ class TestLikes:
 
         empty_response = await ac.get(f"/trips/{trip.id}/like")
         assert empty_response.status_code == HTTPStatus.OK
-        assert empty_response.json() == []
+        assert empty_response.json()["users"] == []
 
         response_1 = await authenticated_ac.post(f"/trips/{trip.id}/like")
         assert response_1.status_code == HTTPStatus.CREATED
@@ -578,7 +578,7 @@ class TestLikes:
         assert response.status_code == HTTPStatus.OK
 
         response_data = response.json()
-        likes_ids = {data["id"] for data in response_data}
+        likes_ids = {user["id"] for user in response_data["users"]}
         expected_ids = {
             authenticated_ac.id,
             authenticated_ac_2.id,
@@ -613,21 +613,21 @@ class TestLikes:
 
         empty_response = await ac.get(f"/trips/{trip.id}/like")
         assert empty_response.status_code == HTTPStatus.OK
-        assert empty_response.json() == []
+        assert empty_response.json()["users"] == []
 
         post_response = await authenticated_ac.post(f"/trips/{trip.id}/like")
         assert post_response.status_code == HTTPStatus.CREATED
 
-        check_reponse = await ac.get(f"/trips/{trip.id}/like")
-        assert check_reponse.status_code == HTTPStatus.OK
-        assert len(check_reponse.json()) == 1
+        check_response = await ac.get(f"/trips/{trip.id}/like")
+        assert check_response.status_code == HTTPStatus.OK
+        assert len(check_response.json()["users"]) == 1
 
         delete_response = await authenticated_ac.delete(f"/trips/{trip.id}/like")
         assert delete_response.status_code == HTTPStatus.NO_CONTENT
 
         get_response = await ac.get(f"/trips/{trip.id}/like")
         assert get_response.status_code == HTTPStatus.OK
-        assert get_response.json() == []
+        assert get_response.json()["users"] == []
 
     async def test_unlike_unauthenticated(self, ac: AsyncClient, create_trip: TripFactory):
         """

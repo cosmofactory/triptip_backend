@@ -1,7 +1,13 @@
 from datetime import date
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    Enum,
+    ForeignKey,
+    Integer,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import TimeStampModel
@@ -29,6 +35,7 @@ class Trip(TimeStampModel):
     date_from: Mapped[date]
     date_to: Mapped[date]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    likes_counter: Mapped[int] = mapped_column(Integer, default=0)
 
     author: Mapped["User"] = relationship("User", back_populates="trips", lazy="selectin")
     locations: Mapped[List["Location"]] = relationship(

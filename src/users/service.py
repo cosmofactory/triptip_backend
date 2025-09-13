@@ -64,6 +64,7 @@ class UserService:
                 follower_id=current_user.id,
                 followee_id=followee_id,
             )
+            await UserDAO.increment_counter(db, current_user.id, "followings_counter")
         except HTTPException as e:
             if e.status_code == status.HTTP_400_BAD_REQUEST:
                 raise HTTPException(
@@ -102,6 +103,7 @@ class UserService:
         if subscription is None:
             return None
         await SubscriptionDAO.delete(db, subscription.id)
+        await UserDAO.decrement_counter(db, current_user.id, "followings_counter")
         return None
 
     @staticmethod
@@ -109,7 +111,7 @@ class UserService:
         db: AsyncSession, type_id: int, relation_type: Literal["subscription", "like"]
     ) -> List[SUserOutput]:
         """
-        Get all users related to the given user based on the relation type.
+        Get all users based on the relation type.
         """
         match relation_type:
             case "subscription":
@@ -136,3 +138,28 @@ class UserService:
 
         users = await UserDAO.find_by_ids(db, related_ids)
         return [SUserOutput.model_validate(user) for user in users]
+
+    @staticmethod
+    async def get_related_quantity(
+        db: AsyncSession, type_id: int, relation_type: Literal["subscription", "like"]
+    ) -> int:
+        """
+        Get quantity of users based on the relation type.
+        """
+        match relation_type:
+            case "subscription":
+                related_quantity = await SubscriptionDAO.count_by_filter(
+                    db,
+                    follower_id=type_id,
+                )
+            case "like":
+                related_quantity = await LikeDAO.count_by_filter(
+                    db,
+                    trip_id=type_id,
+                )
+            case _:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid relation_type for getting related quantity",
+                )
+        return related_quantity

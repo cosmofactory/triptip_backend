@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, List
 
 from pydantic import EmailStr
-from sqlalchemy import String, Text
+from sqlalchemy import Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import TimeStampModel
@@ -25,6 +25,7 @@ class User(TimeStampModel):
     last_name: Mapped[str | None]
     userpic: Mapped[str | None]
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    followings_counter: Mapped[int] = mapped_column(Integer, default=0)
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_verified: Mapped[bool] = mapped_column(default=False)
 

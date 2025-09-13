@@ -21,6 +21,7 @@ from src.trips.schemas import (
     SRouteInput,
     SRouteOutput,
     STripInput,
+    STripLikeOutput,
     STripOutput,
     STripUserOutput,
 )
@@ -344,7 +345,7 @@ async def post_like(
 @router.get(
     "/{trip_id}/like",
     status_code=status.HTTP_200_OK,
-    response_model=list[SUserOutput],
+    response_model=STripLikeOutput,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
     },
@@ -352,15 +353,24 @@ async def post_like(
 async def get_trip_likes(
     trip_id: int,
     db: SessionDep,
-) -> list[SUserOutput]:
-    """Get all users who liked current trip."""
+) -> STripLikeOutput:
+    """Get all users and number of users who liked current trip."""
     trip = await TripService.get_trip(db, trip_id)
-    result = await UserService.get_all_related_users(
+    users = await UserService.get_all_related_users(
         db=db,
         type_id=trip.id,
         relation_type="like",
     )
-    return result
+    likes_counter = await UserService.get_related_quantity(
+        db=db,
+        type_id=trip.id,
+        relation_type="like",
+    )
+    return STripLikeOutput(
+        id=trip.id,
+        likes_counter=likes_counter,
+        users=users,
+    )
 
 
 @router.delete(

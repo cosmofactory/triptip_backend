@@ -6,7 +6,7 @@ from src.auth.auth import get_current_user
 from src.database.database import SessionDep
 from src.subscriptions.schemas import SubscriptionOutput
 from src.trips.schemas import STripListOutput
-from src.users.schemas import SUserNotFound, SUserOutput
+from src.users.schemas import SUserNotFound, SUserOutput, SUserSubscriptionOutput
 from src.users.service import UserService
 from src.utils.dependencies import upload_image
 from src.utils.exceptions import SErrorResponse
@@ -107,15 +107,25 @@ async def unfollow_user(
 @router.get(
     "/profile/{user_id}/followings",
     status_code=status.HTTP_200_OK,
+    response_model=SUserSubscriptionOutput,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
 )
-async def get_user_followings(user_id: int, db: SessionDep) -> list[SUserOutput]:
+async def get_user_followings(user_id: int, db: SessionDep) -> SUserSubscriptionOutput:
     """Get all user's followings."""
-    result = await UserService.get_all_related_users(
+    users = await UserService.get_all_related_users(
         db=db,
         type_id=user_id,
         relation_type="subscription",
     )
-    return result
+    followings_counter = await UserService.get_related_quantity(
+        db=db,
+        type_id=user_id,
+        relation_type="subscription",
+    )
+    return SUserSubscriptionOutput(
+        id=user_id,
+        followings_counter=followings_counter,
+        users=users,
+    )
