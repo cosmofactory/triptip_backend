@@ -167,7 +167,7 @@ class TestUsers:
         assert response_2.status_code == HTTPStatus.OK
 
         response_data = response_2.json()
-        result_ids = {user["id"] for user in response_data}
+        result_ids = {user["id"] for user in response_data["users"]}
         assert followee_ids.issubset(result_ids)
 
         # Unfollow and verify that users are removed
@@ -178,5 +178,5 @@ class TestUsers:
         response_3 = await authenticated_ac.get(f"/users/profile/{user_id}/followings")
         assert response_3.status_code == HTTPStatus.OK
 
-        result_ids_after_deletions = {user["id"] for user in response_3.json()}
+        result_ids_after_deletions = {user["id"] for user in response_3.json()["users"]}
         assert followee_ids.isdisjoint(result_ids_after_deletions)

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from src.dao.schema import OrmBase
 from src.settings.enums import RegionEnum
-from src.users.schemas import SShortUserInfo
+from src.users.schemas import SShortUserInfo, SUserOutput
 
 
 class STripLocationOutput(OrmBase):
@@ -25,6 +25,7 @@ class SDetailedTripOutput(OrmBase):
     date_from: date
     date_to: date
     author_id: int
+    likes_counter: int
     locations: list[STripLocationOutput]
 
 
@@ -38,6 +39,15 @@ class STripOutput(OrmBase):
     date_from: date
     date_to: date
     author_id: int
+    likes_counter: int
+
+
+class STripLikeOutput(OrmBase):
+    """Schema with likes counter and list of users who liked a trip."""
+
+    id: int
+    likes_counter: int
+    users: list[SUserOutput]
 
 
 class STripUserOutput(OrmBase):

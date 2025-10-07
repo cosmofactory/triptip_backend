@@ -6,7 +6,7 @@ from src.comments.schemas import SCommentInput
 
 
 class CommentService:
-    "Service layer for Comment."
+    """Service layer for Comment."""
 
     @staticmethod
     @logfire.instrument()

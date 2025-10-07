@@ -1,6 +1,6 @@
 import logfire
 from fastapi import HTTPException, status
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,6 +47,42 @@ class BaseDAO:
         query = select(cls.model.__table__.columns).filter_by(**filter_params)
         result = await db.execute(query)
         return result.mappings().one_or_none()
+
+    @classmethod
+    async def count_by_filter(cls, db: AsyncSession, **filter_params):
+        """
+        Count objects in the table by specific filter parameters.
+
+        If no objects match the filter, returns 0.
+        """
+        query = select(func.count(cls.model.id)).select_from(cls.model).filter_by(**filter_params)
+        result = await db.execute(query)
+        return result.scalar() or 0
+
+    @classmethod
+    async def increment_counter(cls, db: AsyncSession, obj_id: int, field: str):
+        """Increment any counter field."""
+        query = (
+            update(cls.model)
+            .where(cls.model.id == obj_id)
+            .values({field: getattr(cls.model, field) + 1})
+        )
+        await db.execute(query)
+        await db.commit()
+
+    @classmethod
+    async def decrement_counter(cls, db: AsyncSession, obj_id: int, field: str):
+        """Decrement any counter field, not below zero."""
+        from sqlalchemy import case
+
+        column = getattr(cls.model, field)
+        query = (
+            update(cls.model)
+            .where(cls.model.id == obj_id)
+            .values({field: case((column > 0, column - 1), else_=0)})
+        )
+        await db.execute(query)
+        await db.commit()
 
     @classmethod
     async def create(cls, db: AsyncSession, **object_data: dict):

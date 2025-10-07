@@ -7,6 +7,8 @@ from src.comments.dao import CommentDAO
 from src.comments.schemas import SCommentInput, SCommentOutput
 from src.comments.service import CommentService
 from src.database.database import SessionDep
+from src.likes.schemas import SLikeOutput
+from src.likes.service import LikeService
 from src.settings.enums import HighlightEnum
 from src.trips.dao import LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import (
@@ -19,11 +21,13 @@ from src.trips.schemas import (
     SRouteInput,
     SRouteOutput,
     STripInput,
+    STripLikeOutput,
     STripOutput,
     STripUserOutput,
 )
 from src.trips.services import TripService
 from src.users.schemas import SUserOutput
+from src.users.service import UserService
 from src.utils.dependencies import Permissions
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
@@ -280,7 +284,9 @@ async def get_comments(
     db: SessionDep,
 ) -> list[SCommentOutput]:
     """Get all comments under the trip record."""
-    comments = await CommentService.get_comments(db, trip_id)
+    trip = await TripService.get_trip(db, trip_id)
+
+    comments = await CommentService.get_comments(db, trip.id)
     return comments
 
 
@@ -309,4 +315,79 @@ async def delete_comment(
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(comment_id, CommentDAO, user)
     await CommentService.delete_comment(db, comment_id)
+    return None
+
+
+@router.post(
+    "/{trip_id}/like",
+    status_code=status.HTTP_201_CREATED,
+    response_model=SLikeOutput,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+        status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
+    },
+)
+async def post_like(
+    trip_id: int,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> SLikeOutput:
+    """Like current trip."""
+    trip = await TripService.get_trip(db, trip_id)
+    posted_like = await LikeService.leave_like(
+        db,
+        trip_id=trip.id,
+        author_id=user.id,
+    )
+    return posted_like
+
+
+@router.get(
+    "/{trip_id}/like",
+    status_code=status.HTTP_200_OK,
+    response_model=STripLikeOutput,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
+    },
+)
+async def get_trip_likes(
+    trip_id: int,
+    db: SessionDep,
+) -> STripLikeOutput:
+    """Get all users and number of users who liked current trip."""
+    trip = await TripService.get_trip(db, trip_id)
+    users = await UserService.get_all_related_users(
+        db=db,
+        type_id=trip.id,
+        relation_type="like",
+    )
+    likes_counter = await UserService.get_related_quantity(
+        db=db,
+        type_id=trip.id,
+        relation_type="like",
+    )
+    return STripLikeOutput(
+        id=trip.id,
+        likes_counter=likes_counter,
+        users=users,
+    )
+
+
+@router.delete(
+    "/{trip_id}/like",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+        status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
+    },
+)
+async def unlike_trip(
+    trip_id: int,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> None:
+    """Unlike current trip."""
+    trip = await TripService.get_trip(db, trip_id=trip_id)
+
+    await LikeService.discard_like(db, user.id, trip.id)
     return None
