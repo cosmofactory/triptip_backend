@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import boto3
 import pytest
@@ -126,6 +127,19 @@ def mock_aws(monkeypatch):
 def mock_email_service(monkeypatch):
     "Mock email sending service from actual implementation during tests."
     monkeypatch.setattr("src.emails.service.send_email", lambda *args, **kwargs: None)
+
+
+@pytest.fixture(scope="function")
+def mock_file_upload(monkeypatch):
+    """Mock file upload service instead of s3."""
+
+    async def mock_upload_file(self, file):
+        """Return a mocked URL for uploaded file."""
+        extension = file.filename.rsplit(".", 1)[-1] if file.filename else "jpg"
+        key = f"trip_photos/{uuid.uuid4()}.{extension}"
+        return f"https://{settings.AWS_CLOUDFRONT_DISTRIBUTION}/{key}"
+
+    monkeypatch.setattr("src.file_service.service.FileService.upload_file", mock_upload_file)
 
 
 @pytest.fixture(scope="function")
