@@ -302,7 +302,7 @@ class TestUsers:
         assert update_response_data["userpic"] != first_userpic
 
         for key in upload_response_data.keys():
-            if key in upload_response_data and key in update_response_data and key != "userpic":
+            if key in update_response_data and key != "userpic":
                 assert upload_response_data[key] == update_response_data[key]
 
     async def test_update_userpic_unauthorized(self, ac: AsyncClient):
