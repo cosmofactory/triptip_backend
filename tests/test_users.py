@@ -1,5 +1,7 @@
 from http import HTTPStatus
 
+import pytest
+from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -180,3 +182,139 @@ class TestUsers:
 
         result_ids_after_deletions = {user["id"] for user in response_3.json()["users"]}
         assert followee_ids.isdisjoint(result_ids_after_deletions)
+
+    @pytest.mark.parametrize(
+        "content_type, expected",
+        [
+            (
+                "image/png",
+                status.HTTP_201_CREATED,
+            ),
+            (
+                "image/jpeg",
+                status.HTTP_201_CREATED,
+            ),
+            (
+                "image/jpg",
+                status.HTTP_201_CREATED,
+            ),
+            (
+                "text/css",
+                status.HTTP_400_BAD_REQUEST,
+            ),
+            (
+                "application/x-bat",
+                status.HTTP_400_BAD_REQUEST,
+            ),
+            (
+                "application/x-sh",
+                status.HTTP_400_BAD_REQUEST,
+            ),
+        ],
+    )
+    async def test_upload_userpic(
+        self,
+        authenticated_ac: AsyncClient,
+        mock_file_upload,
+        content_type,
+        expected,
+    ):
+        """
+        Expecting 201_CREATED for uploading userpic.
+        """
+        assert authenticated_ac is not None
+
+        with open("tests/mock_data/test_file.jpg", "rb") as f:
+            response = await authenticated_ac.post(
+                "/users/profile/me/userpic", files={"file": ("filename", f, content_type)}
+            )
+        assert response.status_code == expected
+        if expected == HTTPStatus.CREATED:
+            response_data = response.json()
+            assert "userpic" in response_data
+            assert response_data["userpic"] is not None
+
+    @pytest.mark.parametrize(
+        "content_type",
+        [
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "text/css",
+            "application/x-bat",
+            "application/x-sh",
+        ],
+    )
+    async def test_upload_userpic_unauthorized(
+        self,
+        ac: AsyncClient,
+        session: AsyncSession,
+        mock_file_upload,
+        content_type,
+    ):
+        """
+        Test upload a userpic for unauthorized user.
+
+        Expecting 401_UNAUTHORIZED.
+        """
+        user = await UserFactory.create(db=session)
+        assert user is not None
+
+        with open("tests/mock_data/test_file.jpg", "rb") as f:
+            response = await ac.post(
+                "/users/profile/me/userpic", files={"file": ("filename", f, content_type)}
+            )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    async def test_update_userpic(self, authenticated_ac: AsyncClient, mock_file_upload):
+        """
+        Update userpic:
+            1. Upload userpic at 1st time.
+            2. Check if userpic is uploaded -> expecting 201_CREATED.
+            3. Update userpic -> expecting 200_OK.
+            4. Check if userpic is updated.
+            5. Check that only userpic is updated.
+        """
+        assert authenticated_ac is not None
+
+        with open("tests/mock_data/test_file.jpg", "rb") as f:
+            upload_response = await authenticated_ac.post(
+                "/users/profile/me/userpic", files={"file": ("filename", f, "image/jpeg")}
+            )
+        assert upload_response.status_code == HTTPStatus.CREATED
+
+        upload_response_data = upload_response.json()
+        assert "userpic" in upload_response_data
+        assert upload_response_data["userpic"] is not None
+
+        first_userpic = upload_response_data["userpic"]
+
+        with open("tests/mock_data/test_file.jpg", "rb") as f:
+            update_response = await authenticated_ac.patch(
+                "/users/profile/me/userpic", files={"file": ("filename", f, "image/jpeg")}
+            )
+        assert update_response.status_code == HTTPStatus.OK
+
+        update_response_data = update_response.json()
+        assert "userpic" in update_response_data
+        assert update_response_data["userpic"] is not None
+
+        assert update_response_data["userpic"] != first_userpic
+
+        for key in upload_response_data.keys():
+            if key in update_response_data and key != "userpic":
+                assert upload_response_data[key] == update_response_data[key]
+
+    async def test_update_userpic_unauthorized(self, ac: AsyncClient):
+        """
+        Test update userpic for unauthorized user.
+
+        Expecting 401_UNAUTHORIZED.
+        """
+        assert ac is not None
+
+        with open("tests/mock_data/test_file.jpg", "rb") as f:
+            response = await ac.patch(
+                "/users/profile/me/userpic", files={"file": ("filename", f, "image/jpeg")}
+            )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED

@@ -48,15 +48,36 @@ async def read_users_me(
 
 
 @router.post(
-    "/profile/me/userpic_upload",
+    "/profile/me/userpic",
     status_code=status.HTTP_201_CREATED,
-    responses={status.HTTP_400_BAD_REQUEST: {"model": SErrorResponse}},
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorResponse},
+    },
 )
 async def userpic_upload(
     current_user: Annotated[SUserOutput, Depends(get_current_user)],
     userpic: Annotated[str, Depends(upload_image)],
     db: SessionDep,
 ) -> SUserOutput:
+    """Upload userpic to current user."""
+    user = await UserService.upload_userpic_to_current_user(db, current_user, userpic)
+    return user
+
+
+@router.patch(
+    "/profile/me/userpic",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorResponse},
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+    },
+)
+async def userpic_update(
+    current_user: Annotated[SUserOutput, Depends(get_current_user)],
+    userpic: Annotated[str, Depends(upload_image)],
+    db: SessionDep,
+) -> SUserOutput:
+    """Update userpic to current user."""
     user = await UserService.upload_userpic_to_current_user(db, current_user, userpic)
     return user
 
