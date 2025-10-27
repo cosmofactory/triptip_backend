@@ -60,6 +60,32 @@ async def create_trip(
     return created_trip
 
 
+@router.patch(
+    "/{trip_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=STripOutput,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+        status.HTTP_403_FORBIDDEN: {"description": "No permission to update the trip"},
+        status.HTTP_404_NOT_FOUND: {"description": "Trip not found"},
+    },
+)
+async def update_trip(
+    trip_id: int,
+    trip: STripInput,
+    user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> STripOutput:
+    """Update and existing trip information."""
+
+    trip_obj = await TripService.get_trip(db, trip_id)
+
+    permissions = Permissions(db)
+    await permissions.is_author_or_read_only(trip_obj.id, TripDAO, user)
+    updated_trip = await TripService.update_trip(db, trip_obj.id, trip)
+    return updated_trip
+
+
 @router.delete("/{trip_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_trip(
     trip_id: int,

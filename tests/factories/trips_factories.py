@@ -35,16 +35,30 @@ class TripFactory(AsyncFactory):
 
 
 class TripCreationFactory(BaseModel):
-    name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-    description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
-    region: RegionEnum = random.choice([region.value for region in RegionEnum])
-    date_from: date = (date.today() + timedelta(days=random.randint(5, 10))).isoformat()
-    date_to: date = (date.today() + timedelta(days=random.randint(15, 25))).isoformat()
+    name: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    )
+    description: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    )
+    region: RegionEnum = Field(
+        default_factory=lambda: random.choice([region.value for region in RegionEnum])
+    )
+    date_from: date = Field(
+        default_factory=lambda: (date.today() + timedelta(days=random.randint(5, 10))).isoformat()
+    )
+    date_to: date = Field(
+        default_factory=lambda: (date.today() + timedelta(days=random.randint(15, 25))).isoformat()
+    )
 
 
 class LocationCreationFactory(BaseModel):
-    name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-    description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    name: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    )
+    description: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    )
     sequence_id: int = Field(default_factory=lambda: next(sequence_id_generator))
 
 
@@ -59,7 +73,9 @@ class LocationFactory(AsyncFactory):
 
 
 class CommentCreationFactory(BaseModel):
-    text: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    text: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    )
 
 
 class CommentFactory(AsyncFactory):
@@ -87,14 +103,20 @@ class RouteFactory(AsyncFactory):
 
 
 class RouteCreationFactory(BaseModel):
-    description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    description: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    )
     origin_id: int | None = None
     destination_id: int | None = None
 
 
 class HighlightCreationFactory(BaseModel):
-    name: str = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-    description: str = "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    name: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=10))
+    )
+    description: str = Field(
+        default_factory=lambda: "".join(random.choices(string.ascii_letters + string.digits, k=100))
+    )
     route_id: int = None
     location_id: int = None
 

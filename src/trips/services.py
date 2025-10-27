@@ -43,6 +43,14 @@ class TripService:
 
     @staticmethod
     @logfire.instrument()
+    async def update_trip(db: AsyncSession, trip_id: int, trip_data: STripInput) -> STripOutput:
+        """Update an existing trip"""
+        trip_data = trip_data.model_dump()
+        updated_trip = await TripDAO.update(db, trip_id, **trip_data)
+        return updated_trip
+
+    @staticmethod
+    @logfire.instrument()
     async def delete_trip(db: AsyncSession, trip_id: int) -> None:
         """Delete a trip."""
         await TripDAO.delete(db, trip_id)
