@@ -76,7 +76,7 @@ async def update_trip(
     user: Annotated[SUserOutput, Depends(get_current_user)],
     db: SessionDep,
 ) -> STripOutput:
-    """Update and existing trip information."""
+    """Update an existing trip information."""
 
     trip_obj = await TripService.get_trip(db, trip_id)
 
