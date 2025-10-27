@@ -36,9 +36,9 @@ class UserService:
 
     @logfire.instrument()
     @staticmethod
-    async def delete_accont(db: AsyncSession, user_id: int) -> None:
+    async def delete_account(db: AsyncSession, user_id: int) -> None:
         """Soft deletion of a user account."""
-        await UserDAO.soft_delete(db, user_id)
+        await UserDAO.delete(db, user_id, soft_delete=True)
         return None
 
     @staticmethod

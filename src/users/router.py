@@ -98,7 +98,7 @@ async def delete_account(
 
     Soft deletion is implemented for user account.
     """
-    await UserService.delete_accont(db, current_user.id)
+    await UserService.delete_account(db, current_user.id)
     return None
 
 

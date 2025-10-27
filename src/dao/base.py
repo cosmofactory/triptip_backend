@@ -150,35 +150,29 @@ class BaseDAO:
         return result.scalars().first()
 
     @classmethod
-    async def delete(cls, db: AsyncSession, obj_id: int) -> None:
-        """Delete object in the table.
-
-        Query to db (by obj_id)
-        If there is no object -> Status_Code = 404
-        Else delete it
+    async def delete(
+        cls,
+        db: AsyncSession,
+        obj_id: int,
+        soft_delete: bool = False,
+    ) -> None:
         """
-        query = delete(cls.model).where(cls.model.id == obj_id)
-        result = await db.execute(query)
-        if result.rowcount == 0:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No {cls.model.__name__} found with id {obj_id}",
-            )
-        await db.commit()
-
-    @classmethod
-    async def soft_delete(cls, db: AsyncSession, obj_id: int) -> None:
-        """
-        Soft delete object by it's id.
+        Soft or hard delete object by its id.
+        param: soft_delete determines whether to soft or hard delete the object.
 
         If there is no object -> Status_Code = 404.
-        Else soft delete it:
+
+        If soft_delete is True, soft delete the object:
             1. set param: deleted = True.
             2. object remains in database.
+        Else delete the object from table.
         """
-        obj = await cls.get_object_or_404(db, id=obj_id, deleted=False)
-
-        query = update(cls.model).where(cls.model.id == obj.id).values(deleted=True)
+        if soft_delete:
+            obj = await cls.get_object_or_404(db, id=obj_id, deleted=False)
+            query = update(cls.model).where(cls.model.id == obj.id).values(deleted=True)
+        else:
+            obj = await cls.get_object_or_404(db, id=obj_id)
+            query = delete(cls.model).where(cls.model.id == obj.id)
         await db.execute(query)
         await db.commit()
 
