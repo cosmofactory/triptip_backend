@@ -68,6 +68,7 @@ async def delete_trip(
 ) -> None:
     """
     Delete an existing trip.
+    Soft deletion is implemented for the trip.
 
     Only trip author can delete a trip.
     """

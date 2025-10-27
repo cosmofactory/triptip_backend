@@ -62,10 +62,14 @@ class SPasswordRecovery(BaseModel):
 
 
 class EmailResponse(BaseModel):
+    """Email response schema."""
+
     message: str
     email: EmailStr
     expires_in_hours: int
 
 
 class PasswordResetResponse(BaseModel):
+    """Schema for password reset process."""
+
     message: str

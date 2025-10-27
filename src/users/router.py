@@ -82,6 +82,26 @@ async def userpic_update(
     return user
 
 
+@router.delete(
+    "/profile/me/delete_account",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "User is not authorized"},
+    },
+)
+async def delete_account(
+    current_user: Annotated[SUserOutput, Depends(get_current_user)],
+    db: SessionDep,
+) -> None:
+    """
+    Delete user account.
+
+    Soft deletion is implemented for user account.
+    """
+    await UserService.delete_accont(db, current_user.id)
+    return None
+
+
 @router.get("/{user_id}/trips")
 async def get_user_trips(user_id: int, db: SessionDep) -> STripListOutput:
     return await UserService.get_user_trips(db, user_id)

@@ -49,11 +49,27 @@ class TestTrips:
     ):
         """
         Test trip delete endpoint.
+
+        Check pulling objects from db works correctly for soft_deletion:
+        1. Trip can be returned when include_deleted set as True.
+        2. Trip is None when include_deleted set as False.
         """
         response = await authenticated_ac.delete(f"/trips/{create_trip.id}")
         assert response.status_code == HTTPStatus.NO_CONTENT
-        trip = await TripDAO.get_one_or_none(session, id=create_trip.id)
-        assert trip is None
+
+        trip = await TripDAO.get_one_or_none(
+            session,
+            include_deleted=True,
+            id=create_trip.id,
+        )
+        assert trip is not None
+        assert trip["deleted"]
+
+        hidden_trip = await TripDAO.get_one_or_none(
+            session,
+            id=create_trip.id,
+        )
+        assert hidden_trip is None
 
     async def test_trip_delete_non_existent(self, authenticated_ac: AsyncClient):
         """

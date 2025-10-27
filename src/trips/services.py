@@ -44,8 +44,8 @@ class TripService:
     @staticmethod
     @logfire.instrument()
     async def delete_trip(db: AsyncSession, trip_id: int) -> None:
-        """Delete a trip."""
-        await TripDAO.delete(db, trip_id)
+        """Soft deletion of a trip."""
+        await TripDAO.soft_delete(db, trip_id)
         return None
 
     @staticmethod
