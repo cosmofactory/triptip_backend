@@ -2,7 +2,6 @@ from http import HTTPStatus
 
 import pytest
 from httpx import AsyncClient
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.comments.dao import CommentDAO
@@ -21,25 +20,117 @@ from tests.factories.user_factories import UserFactory
 
 
 class TestTrips:
-    @pytest.mark.parametrize(
-        "trip, status",
-        [
-            (TripCreationFactory(), HTTPStatus.CREATED),
-            (TripCreationFactory(), HTTPStatus.BAD_REQUEST),
-        ],
-    )
-    async def test_trip_creation(self, authenticated_ac: AsyncClient, trip: BaseModel, status):
+    async def test_trip_creation(self, authenticated_ac: AsyncClient):
         """
         Test trip creation endpoint.
-
-        Create a trip and check if it appears on /trips endpoint.
-        Creating trip with the same name twice should return 400.
+        Expecting 201_CREATED.
         """
+        trip = TripCreationFactory()
         trip_data = trip.model_dump()
         response = await authenticated_ac.post("/trips", json=trip_data)
-        assert response.status_code == status
-        if status == HTTPStatus.CREATED:
-            assert response.json()["name"] == trip.name
+        assert response.status_code == HTTPStatus.CREATED
+        assert response.json()["name"] == trip.name
+
+    async def test_trip_creation_duplicate_name(self, authenticated_ac: AsyncClient):
+        """
+        Test trip creation endpoint with duplicate name.
+        Expecting 400_BAD_REQUEST.
+        """
+        trip_data = TripCreationFactory().model_dump()
+
+        response_1 = await authenticated_ac.post("/trips", json=trip_data)
+        assert response_1.status_code == HTTPStatus.CREATED
+
+        response_2 = await authenticated_ac.post("/trips", json=trip_data)
+        assert response_2.status_code == HTTPStatus.BAD_REQUEST
+        assert "already exists" in response_2.json()["detail"]
+
+    async def test_trip_update(self, authenticated_ac: AsyncClient):
+        """
+        Test trip update endpoint.
+
+        1. Create a trip and ensure it is created.
+        2. Update the trip and ensure that it is updated.
+        3. Check that id and author_id are not updated.
+        4. Ensure that other fields of TripCreationFactory are updated.
+
+        Expecting 200_OK and correct payload for authorized user.
+        """
+        trip = TripCreationFactory()
+        trip_data = trip.model_dump()
+        upload_response = await authenticated_ac.post("/trips", json=trip_data)
+        assert upload_response.status_code == HTTPStatus.CREATED
+
+        upload_response_data = upload_response.json()
+        assert upload_response_data["name"] == trip.name
+        assert upload_response_data["author_id"] == authenticated_ac.id
+
+        trip_id = upload_response_data["id"]
+
+        update_data = TripCreationFactory().model_dump()
+        update_response = await authenticated_ac.patch(
+            f"/trips/{trip_id}",
+            json=update_data,
+        )
+        assert update_response.status_code == HTTPStatus.OK
+
+        update_response_data = update_response.json()
+        assert update_response_data["id"] == trip_id
+        assert update_response_data["author_id"] == upload_response_data["author_id"]
+        for key in update_data:
+            assert update_response_data[key] == update_data[key]
+
+    async def test_trip_update_unauthenticated(
+        self,
+        authenticated_ac: AsyncClient,
+        ac: AsyncClient,
+        session: AsyncSession,
+    ):
+        """
+        Test trip update endpoint for unauthenticated user.
+        """
+        trip = await TripFactory.create(db=session, author_id=authenticated_ac.id)
+        trip_data = TripCreationFactory().model_dump()
+        response = await ac.patch(
+            f"/trips/{trip.id}",
+            json=trip_data,
+        )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    async def test_trip_update_for_other_user(
+        self,
+        authenticated_ac: AsyncClient,
+        authenticated_ac_2: AsyncClient,
+        session: AsyncSession,
+    ):
+        """
+        Test trip update endpoint for other user.
+
+        Check 403_FORBIDDEN for a non-author user.
+        """
+        trip = await TripFactory.create(db=session, author_id=authenticated_ac.id)
+        trip_data = TripCreationFactory().model_dump()
+
+        response = await authenticated_ac_2.patch(
+            f"/trips/{trip.id}",
+            json=trip_data,
+        )
+        assert response.status_code == HTTPStatus.FORBIDDEN
+
+    async def test_trip_update_non_existent(self, authenticated_ac: AsyncClient):
+        """
+        Test trip update endpoint for non-existent trip.
+
+        Ensure 404_NOT_FOUND for a non-existent trip ID.
+        """
+        non_existent_id = 999999
+        trip_data = TripCreationFactory().model_dump()
+
+        response = await authenticated_ac.patch(
+            f"/trips/{non_existent_id}",
+            json=trip_data,
+        )
+        assert response.status_code == HTTPStatus.NOT_FOUND
 
     async def test_trip_endpoint_delete(
         self,
