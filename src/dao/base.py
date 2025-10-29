@@ -1,6 +1,6 @@
 import logfire
 from fastapi import HTTPException, status
-from sqlalchemy import delete, func, insert, select, update
+from sqlalchemy import case, delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -111,8 +111,6 @@ class BaseDAO:
     @classmethod
     async def decrement_counter(cls, db: AsyncSession, obj_id: int, field: str):
         """Decrement any counter field, not below zero."""
-        from sqlalchemy import case
-
         column = getattr(cls.model, field)
         query = (
             update(cls.model)
@@ -154,7 +152,7 @@ class BaseDAO:
         cls,
         db: AsyncSession,
         obj_id: int,
-        soft_delete: bool = False,
+        soft_delete: bool = True,
     ) -> None:
         """
         Soft or hard delete object by its id.
@@ -168,7 +166,7 @@ class BaseDAO:
         Else delete the object from table.
         """
         if soft_delete:
-            obj = await cls.get_object_or_404(db, id=obj_id, deleted=False)
+            obj = await cls.get_object_or_404(db, id=obj_id)
             query = update(cls.model).where(cls.model.id == obj.id).values(deleted=True)
         else:
             obj = await cls.get_object_or_404(db, id=obj_id)

@@ -99,7 +99,6 @@ async def delete_account(
     Soft deletion is implemented for user account.
     """
     await UserService.delete_account(db, current_user.id)
-    return None
 
 
 @router.get("/{user_id}/trips")
@@ -142,7 +141,6 @@ async def unfollow_user(
 ) -> None:
     """Unfollow user."""
     await UserService.unfollow_current_user(db, current_user, user_id)
-    return None
 
 
 @router.get(

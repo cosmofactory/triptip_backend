@@ -46,7 +46,6 @@ class TripService:
     async def delete_trip(db: AsyncSession, trip_id: int) -> None:
         """Soft deletion of a trip."""
         await TripDAO.delete(db, trip_id, soft_delete=True)
-        return None
 
     @staticmethod
     @logfire.instrument()
@@ -68,8 +67,7 @@ class TripService:
     @logfire.instrument()
     async def delete_location(db: AsyncSession, location_id: int) -> None:
         """Delete an existing location."""
-        await LocationDAO.delete(db, location_id)
-        return None
+        await LocationDAO.delete(db, location_id, soft_delete=False)
 
     @staticmethod
     @logfire.instrument()
@@ -91,8 +89,7 @@ class TripService:
     @logfire.instrument()
     async def delete_route(db: AsyncSession, route_id: int) -> None:
         """Delete an existing route."""
-        await RouteDAO.delete(db, route_id)
-        return None
+        await RouteDAO.delete(db, route_id, soft_delete=False)
 
     @staticmethod
     @logfire.instrument()

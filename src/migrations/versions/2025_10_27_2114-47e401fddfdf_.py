@@ -54,17 +54,9 @@ def upgrade() -> None:
         "users", sa.Column("deleted", sa.Boolean(), nullable=False, server_default=sa.false())
     )
 
-    # Drop server defaults after backfilling existing rows
-    op.alter_column("comments", "deleted", server_default=None)
-    op.alter_column("emails", "deleted", server_default=None)
-    op.alter_column("highlights", "deleted", server_default=None)
-    op.alter_column("likes", "deleted", server_default=None)
-    op.alter_column("locations", "deleted", server_default=None)
-    op.alter_column("refresh_tokens", "deleted", server_default=None)
-    op.alter_column("routes", "deleted", server_default=None)
-    op.alter_column("subscriptions", "deleted", server_default=None)
-    op.alter_column("trips", "deleted", server_default=None)
-    op.alter_column("users", "deleted", server_default=None)
+    # Backfill existing rows
+    op.alter_column("trips", "likes_counter", server_default=sa.text("0"))
+    op.alter_column("users", "followings_counter", server_default=sa.text("0"))
     # ### end Alembic commands ###
 
 
