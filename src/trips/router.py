@@ -94,13 +94,13 @@ async def delete_trip(
 ) -> None:
     """
     Delete an existing trip.
+    Soft deletion is implemented for the trip.
 
     Only trip author can delete a trip.
     """
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(trip_id, TripDAO, user)
     await TripService.delete_trip(db, trip_id)
-    return None
 
 
 @router.post(
@@ -149,7 +149,6 @@ async def delete_location(
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(location_id, LocationDAO, user)
     await TripService.delete_location(db, location_id)
-    return None
 
 
 @router.get("/locations/{location_id}/route", response_model=SRouteOutput)
@@ -202,7 +201,6 @@ async def delete_route(
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(route_id, RouteDAO, user)
     await TripService.delete_route(db, route_id)
-    return None
 
 
 @router.post("/route/{route_id}/highlight", status_code=status.HTTP_201_CREATED)
@@ -341,7 +339,6 @@ async def delete_comment(
     permissions = Permissions(db)
     await permissions.is_author_or_read_only(comment_id, CommentDAO, user)
     await CommentService.delete_comment(db, comment_id)
-    return None
 
 
 @router.post(
@@ -416,4 +413,3 @@ async def unlike_trip(
     trip = await TripService.get_trip(db, trip_id=trip_id)
 
     await LikeService.discard_like(db, user.id, trip.id)
-    return None

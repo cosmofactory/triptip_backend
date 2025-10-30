@@ -27,3 +27,4 @@ class TimeStampModel(Base):
     deleted_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    deleted: Mapped[bool] = mapped_column(default=False)

@@ -34,6 +34,13 @@ class UserService:
         user = await UserDAO.update(db, user.id, **user.model_dump(include={"userpic"}))
         return SUserOutput.model_validate(user)
 
+    @logfire.instrument()
+    @staticmethod
+    async def delete_account(db: AsyncSession, user_id: int) -> None:
+        """Soft deletion of a user account."""
+        await UserDAO.delete(db, user_id, soft_delete=True)
+        return None
+
     @staticmethod
     async def get_user_trips(db: AsyncSession, user_id: int) -> STripListOutput:
         trips = await TripDAO.get_all_and_count(db, author_id=user_id)

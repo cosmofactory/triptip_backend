@@ -35,5 +35,4 @@ class CommentService:
     @logfire.instrument()
     async def delete_comment(db: AsyncSession, comment_id: int) -> None:
         """Delete an existing comment."""
-        await CommentDAO.delete(db, comment_id)
-        return None
+        await CommentDAO.delete(db, comment_id, soft_delete=False)

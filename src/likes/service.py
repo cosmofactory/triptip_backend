@@ -40,6 +40,5 @@ class LikeService:
         if like is None:
             return None
 
-        await LikeDAO.delete(db, like.id)
+        await LikeDAO.delete(db, like.id, soft_delete=False)
         await TripDAO.decrement_counter(db, trip_id, "likes_counter")
-        return None

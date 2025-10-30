@@ -5,6 +5,7 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.users.dao import UserDAO
 from tests.factories.user_factories import UserFactory
 
 
@@ -317,4 +318,47 @@ class TestUsers:
             response = await ac.patch(
                 "/users/profile/me/userpic", files={"file": ("filename", f, "image/jpeg")}
             )
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+    async def test_delete_account(
+        self,
+        authenticated_ac: AsyncClient,
+        session: AsyncSession,
+    ):
+        """
+        Test soft account deletion for authenticated user.
+        Expecting 204_NO_CONTENT.
+
+        Check pulling objects from db works correctly for soft_deletion:
+        1. User can be returned when include_deleted set as True.
+        2. User is None when include_deleted set as False.
+        """
+        assert authenticated_ac is not None
+
+        response = await authenticated_ac.delete("/users/profile/me/delete_account")
+        assert response.status_code == HTTPStatus.NO_CONTENT
+
+        user = await UserDAO.get_one_or_none(
+            session,
+            include_deleted=True,
+            id=authenticated_ac.id,
+        )
+        assert user is not None
+        assert user["deleted"]
+
+        hidden_user = await UserDAO.get_one_or_none(
+            session,
+            id=authenticated_ac.id,
+        )
+        assert hidden_user is None
+
+    async def test_delete_account_unauthorized(self, ac: AsyncClient):
+        """
+        Test soft account deletion for unauthorized user.
+
+        Expecting 401_UNAUTHORIZED.
+        """
+        assert ac is not None
+
+        response = await ac.delete("/users/profile/me/delete_account")
         assert response.status_code == HTTPStatus.UNAUTHORIZED
