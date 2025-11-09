@@ -35,6 +35,7 @@ dependencies = [
     "logfire[fastapi]>=3.14.1",
     "aiosmtplib>=4.0.0",
     "pyjwt>=2.10.1",
+    "fastapi-pagination>=0.15.0",
 ]
 name = "triptip-backend"
 version = "0.1.0"

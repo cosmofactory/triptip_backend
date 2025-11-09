@@ -12,11 +12,9 @@ class TripDAO(BaseDAO):
     model = Trip
 
     @classmethod
-    async def get_all_trips(cls, db: AsyncSession, limit: int) -> list[Trip]:
-        """Get list of trips joined with authors."""
-        query = select(Trip).options(joinedload(Trip.author)).limit(limit)
-        result = await db.execute(query)
-        return result.unique().scalars().all()
+    def get_all_trips(cls):
+        """Get SQLAlchemy query for trips with nested author fields for pagination."""
+        return select(Trip).options(joinedload(Trip.author))
 
     @classmethod
     async def get_all_and_count(cls, db: AsyncSession, **filter_params):

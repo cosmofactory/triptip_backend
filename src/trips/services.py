@@ -1,4 +1,6 @@
 import logfire
+from fastapi_pagination.ext.sqlalchemy import apaginate
+from fastapi_pagination.limit_offset import LimitOffsetPage, LimitOffsetParams
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.settings.enums import HighlightEnum
@@ -20,10 +22,22 @@ class TripService:
 
     @staticmethod
     @logfire.instrument()
-    async def get_trips(db: AsyncSession, limit: int) -> list[STripUserOutput]:
-        """Get list of trips with nested author fields."""
-        trips = await TripDAO.get_all_trips(db, limit)
-        return [STripUserOutput.model_validate(trip) for trip in trips]
+    async def get_trips(
+        db: AsyncSession, params: LimitOffsetParams
+    ) -> LimitOffsetPage[STripUserOutput]:
+        """
+        Get list of trips with nested author fields for pagination:
+            1. Get SQLAlchemy query for trips with nested author fields
+            2. Use apaginate to paginate the query
+            3. Transform the query to the STripUserOutput schema
+        """
+        trips = TripDAO.get_all_trips()
+        return await apaginate(
+            db,
+            trips,
+            params,
+            transformer=lambda trips: [STripUserOutput.model_validate(trip) for trip in trips],
+        )
 
     @staticmethod
     @logfire.instrument()
