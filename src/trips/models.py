@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import TimeStampModel
-from src.settings.enums import RegionEnum
+from src.settings.enums import RegionEnum, TripEnum
 
 if TYPE_CHECKING:
     from src.comments.models import Comment
@@ -36,6 +36,7 @@ class Trip(TimeStampModel):
     date_to: Mapped[date]
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     likes_counter: Mapped[int] = mapped_column(Integer, default=0)
+    visability: Mapped[TripEnum] = mapped_column(Enum(TripEnum), nullable=False)
 
     author: Mapped["User"] = relationship("User", back_populates="trips", lazy="selectin")
     locations: Mapped[List["Location"]] = relationship(

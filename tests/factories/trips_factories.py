@@ -9,7 +9,7 @@ import factory.fuzzy
 from pydantic import BaseModel, Field
 
 from src.comments.dao import CommentDAO
-from src.settings.enums import RegionEnum
+from src.settings.enums import RegionEnum, TripEnum
 from src.trips.dao import HighlightDAO, LocationDAO, RouteDAO, TripDAO
 from tests.factories.base_factory import AsyncFactory
 
@@ -32,6 +32,7 @@ class TripFactory(AsyncFactory):
         datetime.date.today() + datetime.timedelta(days=25),
     )
     author_id = None
+    visability = factory.fuzzy.FuzzyChoice(TripEnum)
 
 
 class TripCreationFactory(BaseModel):
@@ -49,6 +50,9 @@ class TripCreationFactory(BaseModel):
     )
     date_to: date = Field(
         default_factory=lambda: (date.today() + timedelta(days=random.randint(15, 25))).isoformat()
+    )
+    visability: TripEnum = Field(
+        default_factory=lambda: random.choice([status.value for status in TripEnum])
     )
 
 

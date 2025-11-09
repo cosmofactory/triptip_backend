@@ -264,3 +264,9 @@ class RegionEnum(enum.Enum):
 class HighlightEnum(enum.Enum):
     ROUTE_HIGHLIGHT = "route highlight"
     LOCATION_HIGHLIGHT = "location highlight"
+
+
+class TripEnum(enum.Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    PRIVATE = "private"
