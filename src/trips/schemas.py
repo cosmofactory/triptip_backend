@@ -3,7 +3,7 @@ from datetime import date, datetime
 from pydantic import BaseModel
 
 from src.dao.schema import OrmBase
-from src.settings.enums import RegionEnum, TripEnum
+from src.settings.enums import RegionEnum, VisibilityEnum
 from src.users.schemas import SShortUserInfo, SUserOutput
 
 
@@ -27,7 +27,7 @@ class SDetailedTripOutput(OrmBase):
     author_id: int
     likes_counter: int
     locations: list[STripLocationOutput]
-    visability: TripEnum
+    visibility: VisibilityEnum
 
 
 class STripOutput(OrmBase):
@@ -41,7 +41,7 @@ class STripOutput(OrmBase):
     date_to: date
     author_id: int
     likes_counter: int
-    visability: TripEnum
+    visibility: VisibilityEnum
 
 
 class STripLikeOutput(OrmBase):
@@ -62,7 +62,7 @@ class STripUserOutput(OrmBase):
     date_from: date
     date_to: date
     author: SShortUserInfo
-    visability: TripEnum
+    visibility: VisibilityEnum
 
 
 class STripListOutput(OrmBase):
@@ -80,7 +80,7 @@ class STripInput(OrmBase):
     region: RegionEnum
     date_from: date
     date_to: date
-    visability: TripEnum
+    visibility: VisibilityEnum
 
 
 class SObjectAlreadyExists(BaseModel):

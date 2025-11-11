@@ -1,7 +1,7 @@
 import enum
 
 
-class RegionEnum(enum.Enum):
+class RegionEnum(enum.StrEnum):
     """List of regions and countries for DB."""
 
     ASIA = "Asia"
@@ -261,12 +261,12 @@ class RegionEnum(enum.Enum):
     ALAND_ISLANDS = "Aland Islands"
 
 
-class HighlightEnum(enum.Enum):
+class HighlightEnum(enum.StrEnum):
     ROUTE_HIGHLIGHT = "route highlight"
     LOCATION_HIGHLIGHT = "location highlight"
 
 
-class TripEnum(enum.Enum):
+class VisibilityEnum(enum.StrEnum):
     DRAFT = "draft"
     PUBLISHED = "published"
     PRIVATE = "private"
