@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel
@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from src.settings.config import settings
 
 
-class ErrorCode(str, Enum):
+class ErrorCode(StrEnum):
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
     COULD_NOT_VALIDATE_CREDENTIALS = "COULD_NOT_VALIDATE_CREDENTIALS"
     INVALID_REFRESH_TOKEN = "INVALID_REFRESH_TOKEN"

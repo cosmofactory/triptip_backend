@@ -5,6 +5,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.comments.dao import CommentDAO
+from src.settings.enums import VisibilityEnum
 from src.trips.dao import LocationDAO, RouteDAO, TripDAO
 from src.trips.schemas import SDetailedTripOutput
 from tests.factories.trips_factories import (
@@ -44,6 +45,41 @@ class TestTrips:
         response_2 = await authenticated_ac.post("/trips", json=trip_data)
         assert response_2.status_code == HTTPStatus.BAD_REQUEST
         assert "already exists" in response_2.json()["detail"]
+
+    @pytest.mark.parametrize(
+        "visibility_state",
+        [VisibilityEnum.DRAFT, VisibilityEnum.PUBLISHED, VisibilityEnum.PRIVATE],
+    )
+    async def test_trip_creation_with_visibility(
+        self,
+        authenticated_ac: AsyncClient,
+        visibility_state,
+    ):
+        """
+        Test trip creation endpoint with different visibility states.
+
+        Expecting 201_CREATED and correct visibility state in response.
+        """
+        trip = TripCreationFactory()
+        trip_data = trip.model_dump()
+        trip_data["visibility"] = visibility_state.value
+
+        response = await authenticated_ac.post("/trips", json=trip_data)
+        assert response.status_code == HTTPStatus.CREATED
+        assert response.json()["visibility"] == visibility_state.value
+
+    async def test_trip_creation_with_fake_visibility(self, authenticated_ac: AsyncClient):
+        """
+        Test trip creation with fake visibility state.
+
+        Create a trip with a fake visibility state and check if it returns a 422 error.
+        """
+        trip = TripCreationFactory()
+        trip_data = trip.model_dump()
+        trip_data["visibility"] = "fake_visibility_state"
+
+        response = await authenticated_ac.post("/trips", json=trip_data)
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     async def test_trip_update(self, authenticated_ac: AsyncClient):
         """
