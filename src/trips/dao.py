@@ -1,3 +1,4 @@
+from fastapi_pagination.ext.sqlalchemy import apaginate
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -12,11 +13,15 @@ class TripDAO(BaseDAO):
     model = Trip
 
     @classmethod
-    async def get_all_trips(cls, db: AsyncSession, limit: int) -> list[Trip]:
-        """Get list of trips joined with authors."""
-        query = select(Trip).options(joinedload(Trip.author)).limit(limit)
-        result = await db.execute(query)
-        return result.unique().scalars().all()
+    async def get_all_trips(cls, db: AsyncSession, params):
+        """
+        Get list of trips with nested author fields for pagination:
+            1. Get SQLAlchemy query for trips with nested author fields
+            2. Use apaginate to paginate the query
+            3. Return the result.
+        """
+        query = select(Trip).options(joinedload(Trip.author))
+        return await apaginate(db, query, params)
 
     @classmethod
     async def get_all_and_count(cls, db: AsyncSession, **filter_params):

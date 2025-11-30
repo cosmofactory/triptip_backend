@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
+from fastapi_pagination.limit_offset import LimitOffsetPage, LimitOffsetParams
 
 from src.auth.auth import get_current_user
 from src.comments.dao import CommentDAO
@@ -33,10 +34,12 @@ from src.utils.dependencies import Permissions
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
 
-@router.get("", response_model=list[STripUserOutput])
-async def get_trips(db: SessionDep, limit: int = 50) -> list[STripUserOutput]:
-    """Get all trips."""
-    trips = await TripService.get_trips(db, limit)
+@router.get("", response_model=LimitOffsetPage[STripUserOutput])
+async def get_trips(
+    db: SessionDep, params: Annotated[LimitOffsetParams, Depends()]
+) -> LimitOffsetPage[STripUserOutput]:
+    """Get all paginated trips."""
+    trips = await TripService.get_trips(db, params)
     return trips
 
 
