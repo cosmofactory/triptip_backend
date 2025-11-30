@@ -1,5 +1,4 @@
 import logfire
-from fastapi_pagination.ext.sqlalchemy import apaginate
 from fastapi_pagination.limit_offset import LimitOffsetPage, LimitOffsetParams
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,18 +25,10 @@ class TripService:
         db: AsyncSession, params: LimitOffsetParams
     ) -> LimitOffsetPage[STripUserOutput]:
         """
-        Get list of trips with nested author fields for pagination:
-            1. Get SQLAlchemy query for trips with nested author fields
-            2. Use apaginate to paginate the query
-            3. Transform the query to the STripUserOutput schema
+        Get paginated list of trips.
         """
-        trips = TripDAO.get_all_trips()
-        return await apaginate(
-            db,
-            trips,
-            params,
-            transformer=lambda trips: [STripUserOutput.model_validate(trip) for trip in trips],
-        )
+        trips = await TripDAO.get_all_trips(db, params)
+        return trips
 
     @staticmethod
     @logfire.instrument()

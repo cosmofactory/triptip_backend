@@ -2,6 +2,7 @@ import logfire
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 from sqladmin import Admin
 from sqlalchemy import text
 
@@ -17,6 +18,7 @@ from src.trips.router import router as trips_router
 from src.users.router import router as users_router
 
 app = FastAPI()
+add_pagination(app)
 
 logfire.configure(
     pydantic_plugin=logfire.PydanticPlugin(record="failure"),

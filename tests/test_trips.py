@@ -183,7 +183,12 @@ class TestTrips:
         response = await ac.post("/trips", json=trip_data)
         assert response.status_code == HTTPStatus.UNAUTHORIZED
 
-    async def test_trip_list(self, ac: AsyncClient, create_trip: TripFactory):
+    async def test_trip_list(
+        self,
+        authenticated_ac: AsyncClient,
+        ac: AsyncClient,
+        session: AsyncSession,
+    ):
         """
         Test trips list endpoint.
 
@@ -192,7 +197,7 @@ class TestTrips:
         """
         trips = []
         for _ in range(10):
-            trip = create_trip
+            trip = await TripFactory.create(db=session, author_id=authenticated_ac.id)
             trips.append(trip.name)
         response = await ac.get("/trips")
         assert response.status_code == HTTPStatus.OK

@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
-from fastapi_pagination import add_pagination
 from fastapi_pagination.limit_offset import LimitOffsetPage, LimitOffsetParams
 
 from src.auth.auth import get_current_user
@@ -33,7 +32,6 @@ from src.users.service import UserService
 from src.utils.dependencies import Permissions
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
-add_pagination(router)
 
 
 @router.get("", response_model=LimitOffsetPage[STripUserOutput])
